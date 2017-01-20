@@ -1,5 +1,5 @@
 /* Test for the STOP parameter of re_match_2 and re_search_2.
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002-2016 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Stepan Kasal <kasal@math.cas.cz>, 2002.
 
@@ -18,9 +18,7 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301 USA.  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <config.h>
 
 #include <locale.h>
 #include <stdio.h>

@@ -1,5 +1,5 @@
 /* Regular expression tests.
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003-2016 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Jakub Jelinek <jakub@redhat.com>, 2003.
 
@@ -18,9 +18,7 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301 USA.  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <config.h>
 
 #include <sys/types.h>
 #ifdef HAVE_MCHECK_H
@@ -340,7 +338,7 @@ mb_test (const char *pattern, int cflags, const char *string, int eflags,
   free (matches_mb);
   free (expect_mb);
   if (string_mb != string)
-    free ((char *) string_mb);
+    free (string_mb);
   free (pattern_mb);
   return ret;
 }

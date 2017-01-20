@@ -1,23 +1,55 @@
+# Copyright (C) 1993-2016 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 dnl Process this file with -*- autoconf -*- to produce a configure script.
-AC_INIT([GNU sed], 4.2.2, bug-sed@gnu.org, sed)
+AC_INIT([GNU sed],
+        m4_esyscmd([build-aux/git-version-gen .tarball-version]),
+        [bug-sed@gnu.org])
 AC_CONFIG_AUX_DIR(build-aux)
 AC_CONFIG_SRCDIR([sed/sed.c])
 AM_CONFIG_HEADER(config.h:config_h.in)
-AC_PREREQ(2.60)
-AM_INIT_AUTOMAKE
+AC_PREREQ(2.62)
+AM_INIT_AUTOMAKE([1.11.1 no-dist-gzip dist-xz color-tests parallel-tests
+                  subdir-objects])
+AM_SILENT_RULES([yes]) # make --enable-silent-rules the default.
+AC_CONFIG_MACRO_DIR([m4])
 
-SED_FEATURE_VERSION=4.2.2
-AC_DEFINE_UNQUOTED(SED_FEATURE_VERSION, "$SED_FEATURE_VERSION",
-  [Define to the version of GNU sed whose features are supported by this sed.])
-AC_SUBST(SED_FEATURE_VERSION)
-
-COPYRIGHT_YEAR=2012
-AC_SUBST(COPYRIGHT_YEAR)
-
-AC_PROG_CC
+AC_PROG_CC_STDC
+AM_PROG_CC_C_O
 gl_EARLY
 gl_INIT
 gl_DISABLE_THREADS
+
+# gl_GCC_VERSION_IFELSE([major], [minor], [run-if-found], [run-if-not-found])
+# ------------------------------------------------
+# If $CPP is gcc-MAJOR.MINOR or newer, then run RUN-IF-FOUND.
+# Otherwise, run RUN-IF-NOT-FOUND.
+AC_DEFUN([gl_GCC_VERSION_IFELSE],
+  [AC_PREPROC_IFELSE(
+    [AC_LANG_PROGRAM(
+      [[
+#if ($1) < __GNUC__ || (($1) == __GNUC__ && ($2) <= __GNUC_MINOR__)
+/* ok */
+#else
+# error "your version of gcc is older than $1.$2"
+#endif
+      ]]),
+    ], [$3], [$4])
+  ]
+)
+
 AC_CACHE_CHECK([whether "rt" can be used with fopen], [sed_cv_fopen_rt], [
 AC_TRY_RUN([
 #include <stdio.h>
@@ -66,20 +98,23 @@ if test "$sed_cv_libcp_needed" = yes; then
 fi
 
 AC_CHECK_HEADERS_ONCE(locale.h errno.h wchar.h wctype.h mcheck.h,
-		      [], [], [AC_INCLUDES_DEFAULT])
+                      [], [], [AC_INCLUDES_DEFAULT])
 AC_C_CONST
 AC_TYPE_SIZE_T
 
-AM_GNU_GETTEXT_VERSION(0.17)
+AM_GNU_GETTEXT_VERSION([0.19.2])
 AM_GNU_GETTEXT([external])
 
 AC_CHECK_FUNCS_ONCE(isatty isascii memcpy strchr strtoul lstat readlink
-		    popen pathconf fchown fchmod setlocale)
+                    popen pathconf fchown fchmod setlocale)
 
 # Check whether we are able to follow symlinks
 if test "$ac_cv_func_lstat:$ac_cv_func_readlink" = yes:yes; then
-   AC_DEFINE(ENABLE_FOLLOW_SYMLINKS, ,[Follow symlinks when processing in place])
+   AC_DEFINE([ENABLE_FOLLOW_SYMLINKS], ,
+             [Follow symlinks when processing in place])
 fi
+AM_CONDITIONAL([TEST_SYMLINKS],
+          [test "$ac_cv_func_lstat:$ac_cv_func_readlink" = yes:yes])
 
 AC_ARG_ENABLE(i18n,
 [  --disable-i18n          disable internationalization (default=enabled)], ,
@@ -88,7 +123,7 @@ if test "x$enable_i18n" = xno; then
   ac_cv_func_wcscoll=no
 fi
 
-AC_ARG_ENABLE(regex-tests, 
+AC_ARG_ENABLE(regex-tests,
 [  --enable-regex-tests    enable regex matcher regression tests (default=yes)],
 [if test "x$with_included_regex" = xno; then
   enable_regex_tests=no
@@ -97,7 +132,7 @@ enable_regex_tests=$with_included_regex)
 
 AM_CONDITIONAL(TEST_REGEX, test "x$enable_regex_tests" = xyes)
 if test "x$enable_regex_tests" = xyes; then
-  AC_DEFINE_UNQUOTED(_REGEX_RE_COMP, 1,
+  AC_DEFINE_UNQUOTED([_REGEX_RE_COMP], 1,
     [Include BSD functions in regex, used by the testsuite])
 fi
 
@@ -171,7 +206,8 @@ int main()
   exit (!test ());
 }
 ], [AC_MSG_RESULT([yes]); XFAIL_TESTS=],
-   [AC_MSG_RESULT([no]); XFAIL_TESTS='utf8-1 utf8-2 utf8-3 utf8-4'],
+   [AC_MSG_RESULT([no]); XFAIL_TESTS='testsuite/utf8-1 testsuite/utf8-2 \
+                                      testsuite/utf8-3 testsuite/utf8-4'],
    [AC_MSG_RESULT([don't care (cross compiling)]); XFAIL_TESTS=])
 
 # Under MinGW, the bsd.sh test fails because of the EOF character (^Z).
@@ -181,8 +217,86 @@ case $host in
 esac
 AC_SUBST([XFAIL_TESTS])
 
-AC_CONFIG_FILES([testsuite/version.good:testsuite/version.gin])
-AC_CONFIG_FILES([Makefile doc/Makefile \
-lib/Makefile sed/Makefile testsuite/Makefile \
-po/Makefile.in])
+AC_ARG_ENABLE([gcc-warnings],
+  [AS_HELP_STRING([--enable-gcc-warnings],
+     [turn on many GCC warnings (for developers; best with GNU make)])],
+  [case $enableval in
+     yes|no) ;;
+     *)      AC_MSG_ERROR([bad value $enableval for gcc-warnings option]) ;;
+   esac
+   gl_gcc_warnings=$enableval],
+  [
+   # GCC provides fine-grained control over diagnostics which
+   # is used in gnulib for example to suppress warnings from
+   # certain sections of code.  So if this is available and
+   # we're running from a git repo, then auto enable the warnings.
+   gl_gcc_warnings=no
+   gl_GCC_VERSION_IFELSE([4], [6],
+                         [test -d "$srcdir"/.git \
+                          && ! test -f "$srcdir"/.tarball-version \
+                          && gl_gcc_warnings=yes])]
+)
+
+if test "$gl_gcc_warnings" = yes; then
+  gl_WARN_ADD([-Werror], [WERROR_CFLAGS])
+  AC_SUBST([WERROR_CFLAGS])
+
+  nw=
+  # This, $nw, is the list of warnings we disable.
+  nw="$nw -Wdeclaration-after-statement" # too useful to forbid
+  nw="$nw -Wsystem-headers"         # Don't let system headers trigger warnings
+  nw="$nw -Wsign-conversion"        # Too many warnings for now
+  nw="$nw -Wformat-nonliteral"      # who.c and pinky.c strftime uses
+  nw="$nw -Wvla"                    # warnings in gettext.h
+  nw="$nw -Wswitch-default"         # Too many warnings for now
+
+  gl_MANYWARN_ALL_GCC([ws])
+  gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
+  for w in $ws; do
+    gl_WARN_ADD([$w])
+  done
+  gl_WARN_ADD([-Wno-sign-compare])     # Too many warnings for now
+
+  # clang is unduly picky about some things.
+  AC_CACHE_CHECK([whether the compiler is clang], [utils_cv_clang],
+    [AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([[
+            #ifndef __clang__
+              #error "not clang"
+            #endif
+          ]])],
+       [utils_cv_clang=yes],
+       [utils_cv_clang=no])])
+  if test $utils_cv_clang = yes; then
+    gl_WARN_ADD([-Wno-format-extra-args])
+    gl_WARN_ADD([-Wno-tautological-constant-out-of-range-compare])
+  fi
+
+  gl_WARN_ADD([-fdiagnostics-show-option])
+  gl_WARN_ADD([-funit-at-a-time])
+
+  AC_SUBST([WARN_CFLAGS])
+
+  AC_DEFINE([lint], [1], [Define to 1 if the compiler is checking for lint.])
+  AH_VERBATIM([FORTIFY_SOURCE],
+  [/* Enable compile-time and run-time bounds-checking, and some warnings,
+      without upsetting glibc 2.15+. */
+   #if !defined _FORTIFY_SOURCE && defined __OPTIMIZE__ && __OPTIMIZE__
+   # define _FORTIFY_SOURCE 2
+   #endif
+  ])
+  AC_DEFINE([GNULIB_PORTCHECK], [1], [enable some gnulib portability checks])
+
+  # For gnulib-tests, the set is slightly smaller still.
+  nw=
+  gl_MANYWARN_COMPLEMENT([GNULIB_TEST_WARN_CFLAGS],
+                         [$WARN_CFLAGS], [$nw])
+  AC_SUBST([GNULIB_TEST_WARN_CFLAGS])
+fi
+
+AC_CONFIG_FILES([
+  Makefile
+  po/Makefile.in
+  gnulib-tests/Makefile
+])
 AC_OUTPUT

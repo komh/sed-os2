@@ -1,6 +1,5 @@
 /*  GNU SED, a batch stream editor.
-    Copyright (C) 1989,90,91,92,93,94,95,98,99,2002,2003,2004,2005,2006,2008,2010
-    Free Software Foundation, Inc.
+    Copyright (C) 1989-2016 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +32,7 @@
 /* let's not confuse text editors that have only dumb bracket-matching... */
 #define OPEN_BRACKET	'['
 #define CLOSE_BRACKET	']'
-#define OPEN_BRACE	'{'
+/* #define OPEN_BRACE	'{' */
 #define CLOSE_BRACE	'}'
 
 struct prog_info {
@@ -78,11 +77,11 @@ struct special_files {
   FILE **pfp;
 };
 
-FILE *my_stdin, *my_stdout, *my_stderr;
-struct special_files special_files[] = {
-  { { "/dev/stdin", false, NULL, NULL }, &my_stdin },
-  { { "/dev/stdout", false, NULL, NULL }, &my_stdout },
-  { { "/dev/stderr", false, NULL, NULL }, &my_stderr },
+static FILE *my_stdin, *my_stdout, *my_stderr;
+static struct special_files special_files[] = {
+  { { (char *) "/dev/stdin", false, NULL, NULL }, &my_stdin },
+  { { (char *) "/dev/stdout", false, NULL, NULL }, &my_stdout },
+  { { (char *) "/dev/stderr", false, NULL, NULL }, &my_stderr },
   { { NULL, false, NULL, NULL }, NULL }
 };
 
@@ -138,44 +137,67 @@ static const char errors[] =
   "expected newer version of sed\0"
   "invalid usage of line address 0\0"
   "unknown command: `%c'\0"
-  "incomplete command";
+  "incomplete command\0"
+  "\":\" lacks a label\0"
+  "recursive escaping after \\c not allowed\0"
+  "e/r/w commands disabled in sandbox mode";
 
 #define BAD_BANG (errors)
 #define BAD_COMMA (BAD_BANG + sizeof(N_("multiple `!'s")))
 #define BAD_STEP (BAD_COMMA + sizeof(N_("unexpected `,'")))
-#define EXCESS_OPEN_BRACE (BAD_STEP + sizeof(N_("invalid usage of +N or ~N as first address")))
+#define EXCESS_OPEN_BRACE (BAD_STEP \
+  + sizeof(N_("invalid usage of +N or ~N as first address")))
 #define EXCESS_CLOSE_BRACE (EXCESS_OPEN_BRACE + sizeof(N_("unmatched `{'")))
 #define EXCESS_JUNK (EXCESS_CLOSE_BRACE + sizeof(N_("unexpected `}'")))
-#define EXPECTED_SLASH (EXCESS_JUNK + sizeof(N_("extra characters after command")))
-#define NO_CLOSE_BRACE_ADDR (EXPECTED_SLASH + sizeof(N_("expected \\ after `a', `c' or `i'")))
-#define NO_COLON_ADDR (NO_CLOSE_BRACE_ADDR + sizeof(N_("`}' doesn't want any addresses")))
-#define NO_SHARP_ADDR (NO_COLON_ADDR + sizeof(N_(": doesn't want any addresses")))
-#define NO_COMMAND (NO_SHARP_ADDR + sizeof(N_("comments don't accept any addresses")))
+#define EXPECTED_SLASH (EXCESS_JUNK \
+  + sizeof(N_("extra characters after command")))
+#define NO_CLOSE_BRACE_ADDR (EXPECTED_SLASH \
+  + sizeof(N_("expected \\ after `a', `c' or `i'")))
+#define NO_COLON_ADDR (NO_CLOSE_BRACE_ADDR \
+  + sizeof(N_("`}' doesn't want any addresses")))
+#define NO_SHARP_ADDR (NO_COLON_ADDR \
+  + sizeof(N_(": doesn't want any addresses")))
+#define NO_COMMAND (NO_SHARP_ADDR \
+  + sizeof(N_("comments don't accept any addresses")))
 #define ONE_ADDR (NO_COMMAND + sizeof(N_("missing command")))
 #define UNTERM_ADDR_RE (ONE_ADDR + sizeof(N_("command only uses one address")))
 #define UNTERM_S_CMD (UNTERM_ADDR_RE + sizeof(N_("unterminated address regex")))
 #define UNTERM_Y_CMD (UNTERM_S_CMD + sizeof(N_("unterminated `s' command")))
 #define UNKNOWN_S_OPT (UNTERM_Y_CMD + sizeof(N_("unterminated `y' command")))
 #define EXCESS_P_OPT (UNKNOWN_S_OPT + sizeof(N_("unknown option to `s'")))
-#define EXCESS_G_OPT (EXCESS_P_OPT + sizeof(N_("multiple `p' options to `s' command")))
-#define EXCESS_N_OPT (EXCESS_G_OPT + sizeof(N_("multiple `g' options to `s' command")))
-#define ZERO_N_OPT (EXCESS_N_OPT + sizeof(N_("multiple number options to `s' command")))
-#define Y_CMD_LEN (ZERO_N_OPT + sizeof(N_("number option to `s' command may not be zero")))
-#define BAD_DELIM (Y_CMD_LEN + sizeof(N_("strings for `y' command are different lengths")))
-#define ANCIENT_VERSION (BAD_DELIM + sizeof(N_("delimiter character is not a single-byte character")))
-#define INVALID_LINE_0 (ANCIENT_VERSION + sizeof(N_("expected newer version of sed")))
-#define UNKNOWN_CMD (INVALID_LINE_0 + sizeof(N_("invalid usage of line address 0")))
+#define EXCESS_G_OPT (EXCESS_P_OPT \
+  + sizeof(N_("multiple `p' options to `s' command")))
+#define EXCESS_N_OPT (EXCESS_G_OPT \
+  + sizeof(N_("multiple `g' options to `s' command")))
+#define ZERO_N_OPT (EXCESS_N_OPT \
+  + sizeof(N_("multiple number options to `s' command")))
+#define Y_CMD_LEN (ZERO_N_OPT \
+  + sizeof(N_("number option to `s' command may not be zero")))
+#define BAD_DELIM (Y_CMD_LEN \
+  + sizeof(N_("strings for `y' command are different lengths")))
+#define ANCIENT_VERSION (BAD_DELIM \
+  + sizeof(N_("delimiter character is not a single-byte character")))
+#define INVALID_LINE_0 (ANCIENT_VERSION \
+  + sizeof(N_("expected newer version of sed")))
+#define UNKNOWN_CMD (INVALID_LINE_0 \
+  + sizeof(N_("invalid usage of line address 0")))
 #define INCOMPLETE_CMD (UNKNOWN_CMD + sizeof(N_("unknown command: `%c'")))
-#define END_ERRORS (INCOMPLETE_CMD + sizeof(N_("incomplete command")))
+#define COLON_LACKS_LABEL (INCOMPLETE_CMD \
+  + sizeof(N_("incomplete command")))
+#define RECURSIVE_ESCAPE_C (COLON_LACKS_LABEL \
+  + sizeof(N_("\":\" lacks a label")))
+#define DISALLOWED_CMD (RECURSIVE_ESCAPE_C \
+  + sizeof(N_("recursive escaping after \\c not allowed")))
+/* #define END_ERRORS (DISALLOWED_CMD \
+     + sizeof(N_( "e/r/w commands disabled in sandbox mode"))) */
 
 static struct output *file_read = NULL;
 static struct output *file_write = NULL;
 
 
 /* Complain about an unknown command and exit. */
-void
-bad_command(ch)
-  char ch;
+static void
+bad_command(char ch)
 {
   const char *msg = _(UNKNOWN_CMD);
   char *unknown_cmd = xmalloc(strlen(msg));
@@ -185,40 +207,38 @@ bad_command(ch)
 
 /* Complain about a programming error and exit. */
 void
-bad_prog(why)
-  const char *why;
+bad_prog(const char *why)
 {
   if (cur_input.name)
     fprintf(stderr, _("%s: file %s line %lu: %s\n"),
-	    myname, cur_input.name, (unsigned long)cur_input.line, why);
+            myname, cur_input.name, (unsigned long)cur_input.line, why);
   else
     fprintf(stderr, _("%s: -e expression #%lu, char %lu: %s\n"),
-	    myname,
-	    (unsigned long)cur_input.string_expr_count,
-	    (unsigned long)(prog.cur-prog.base),
-	    why);
-  exit(EXIT_FAILURE);
+            myname,
+            (unsigned long)cur_input.string_expr_count,
+            (unsigned long)(prog.cur-prog.base),
+            why);
+  exit(EXIT_BAD_USAGE);
 }
 
 
 /* Read the next character from the program.  Return EOF if there isn't
    anything to read.  Keep cur_input.line up to date, so error messages
    can be meaningful. */
-static int inchar (void);
 static int
-inchar()
+inchar(void)
 {
   int ch = EOF;
 
   if (prog.cur)
     {
       if (prog.cur < prog.end)
-	ch = *prog.cur++;
+        ch = *prog.cur++;
     }
   else if (prog.file)
     {
       if (!feof(prog.file))
-	ch = getc(prog.file);
+        ch = getc(prog.file);
     }
   if (ch == '\n')
     ++cur_input.line;
@@ -226,10 +246,8 @@ inchar()
 }
 
 /* unget `ch' so the next call to inchar will return it.   */
-static void savchar (int ch);
 static void
-savchar(ch)
-  int ch;
+savchar(int ch)
 {
   if (ch == EOF)
     return;
@@ -238,17 +256,16 @@ savchar(ch)
   if (prog.cur)
     {
       if (prog.cur <= prog.base || *--prog.cur != ch)
-	panic("Called savchar() with unexpected pushback (%x)",
-	      (unsigned char)ch);
+        panic("Called savchar() with unexpected pushback (%x)",
+              (unsigned char)ch);
     }
   else
     ungetc(ch, prog.file);
 }
 
 /* Read the next non-blank character from the program.  */
-static int in_nonblank (void);
 static int
-in_nonblank()
+in_nonblank(void)
 {
   int ch;
   do
@@ -258,10 +275,8 @@ in_nonblank()
 }
 
 /* Read an integer value from the program.  */
-static countT in_integer (int ch);
 static countT
-in_integer(ch)
-  int ch;
+in_integer (int ch)
 {
   countT num = 0;
 
@@ -274,23 +289,15 @@ in_integer(ch)
   return num;
 }
 
-static int add_then_next (struct buffer *b, int ch);
 static int
-add_then_next(b, ch)
-  struct buffer *b;
-  int ch;
+add_then_next(struct buffer *b, int ch)
 {
   add1_buffer(b, ch);
   return inchar();
 }
 
-static char * convert_number (char *, char *, const char *, int);
 static char *
-convert_number(result, buf, bufend, base)
-  char *result;
-  char *buf;
-  const char *bufend;
-  int base;
+convert_number(char *result, char *buf, const char *bufend, int base)
 {
   int n = 0;
   int max = 1;
@@ -300,26 +307,26 @@ convert_number(result, buf, bufend, base)
     {
       int d = -1;
       switch (*p)
-	{
-	case '0': d = 0x0; break;
-	case '1': d = 0x1; break;
-	case '2': d = 0x2; break;
-	case '3': d = 0x3; break;
-	case '4': d = 0x4; break;
-	case '5': d = 0x5; break;
-	case '6': d = 0x6; break;
-	case '7': d = 0x7; break;
-	case '8': d = 0x8; break;
-	case '9': d = 0x9; break;
-	case 'A': case 'a': d = 0xa; break;
-	case 'B': case 'b': d = 0xb; break;
-	case 'C': case 'c': d = 0xc; break;
-	case 'D': case 'd': d = 0xd; break;
-	case 'E': case 'e': d = 0xe; break;
-	case 'F': case 'f': d = 0xf; break;
-	}
+        {
+        case '0': d = 0x0; break;
+        case '1': d = 0x1; break;
+        case '2': d = 0x2; break;
+        case '3': d = 0x3; break;
+        case '4': d = 0x4; break;
+        case '5': d = 0x5; break;
+        case '6': d = 0x6; break;
+        case '7': d = 0x7; break;
+        case '8': d = 0x8; break;
+        case '9': d = 0x9; break;
+        case 'A': case 'a': d = 0xa; break;
+        case 'B': case 'b': d = 0xb; break;
+        case 'C': case 'c': d = 0xc; break;
+        case 'D': case 'd': d = 0xd; break;
+        case 'E': case 'e': d = 0xe; break;
+        case 'F': case 'f': d = 0xf; break;
+        }
       if (d < 0 || base <= d)
-	break;
+        break;
       n = n * base + d;
     }
   if (p == buf+1)
@@ -331,12 +338,14 @@ convert_number(result, buf, bufend, base)
 
 
 /* Read in a filename for a `r', `w', or `s///w' command. */
-static struct buffer *read_filename (void);
 static struct buffer *
-read_filename()
+read_filename(void)
 {
   struct buffer *b;
   int ch;
+
+  if (sandbox)
+    bad_prog(_(DISALLOWED_CMD));
 
   b = init_buffer();
   ch = in_nonblank();
@@ -344,11 +353,11 @@ read_filename()
     {
 #if 0 /*XXX ZZZ 1998-09-12 kpp: added, then had second thoughts*/
       if (posixicity == POSIXLY_EXTENDED)
-	if (ch == ';' || ch == '#')
-	  {
-	    savchar(ch);
-	    break;
-	  }
+        if (ch == ';' || ch == '#')
+          {
+            savchar(ch);
+            break;
+          }
 #endif
       ch = add_then_next(b, ch);
     }
@@ -356,12 +365,8 @@ read_filename()
   return b;
 }
 
-static struct output *get_openfile (struct output **file_ptrs, const char *mode, int fail);
 static struct output *
-get_openfile(file_ptrs, mode, fail)
-     struct output **file_ptrs;
-     const char *mode;
-     int fail;
+get_openfile (struct output **file_ptrs, const char *mode, int fail)
 {
   struct buffer *b;
   char *file_name;
@@ -377,16 +382,16 @@ get_openfile(file_ptrs, mode, fail)
     {
       /* Check whether it is a special file (stdin, stdout or stderr) */
       struct special_files *special = special_files;
-		  
+
       /* std* sometimes are not constants, so they
          cannot be used in the initializer for special_files */
       my_stdin = stdin; my_stdout = stdout; my_stderr = stderr;
       for (special = special_files; special->outf.name; special++)
         if (strcmp(special->outf.name, file_name) == 0)
           {
-	    special->outf.fp = *special->pfp;
-	    free_buffer (b);
-	    return &special->outf;
+            special->outf.fp = *special->pfp;
+            free_buffer (b);
+            return &special->outf;
           }
     }
 
@@ -404,10 +409,8 @@ get_openfile(file_ptrs, mode, fail)
 }
 
 
-static struct sed_cmd *next_cmd_entry (struct vector **vectorp);
 static struct sed_cmd *
-next_cmd_entry(vectorp)
-  struct vector **vectorp;
+next_cmd_entry (struct vector **vectorp)
 {
   struct sed_cmd *cmd;
   struct vector *v;
@@ -430,79 +433,75 @@ next_cmd_entry(vectorp)
   return cmd;
 }
 
-static int snarf_char_class (struct buffer *b, mbstate_t *cur_stat);
 static int
-snarf_char_class(b, cur_stat)
-  struct buffer *b;
-  mbstate_t *cur_stat;
+snarf_char_class (struct buffer *b, mbstate_t *cur_stat)
 {
   int ch;
   int state = 0;
-  int delim;
-  bool pending_mb = 0;
-  
+  int delim IF_LINT ( = 0) ;
+
   ch = inchar();
   if (ch == '^')
     ch = add_then_next(b, ch);
   if (ch == CLOSE_BRACKET)
     ch = add_then_next(b, ch);
-  
+
   /* States are:
-	0 outside a collation element, character class or collation class
-	1 after the bracket
-	2 after the opening ./:/=
-	3 after the closing ./:/= */
+        0 outside a collation element, character class or collation class
+        1 after the bracket
+        2 after the opening ./:/=
+        3 after the closing ./:/= */
 
   for (;; ch = add_then_next (b, ch))
     {
-      pending_mb = BRLEN (ch, cur_stat) != 1;
+      const int mb_char = IS_MB_CHAR (ch, cur_stat);
 
       switch (ch)
-	{
-	case EOF:
-	case '\n':
-	  return ch;
+        {
+        case EOF:
+        case '\n':
+          return ch;
 
-	case '.':
-	case ':':
-	case '=':
-	  if (pending_mb)
-	    continue;
+        case '.':
+        case ':':
+        case '=':
+          if (mb_char)
+            continue;
 
-	  if (state == 1)
-	    {
-	      delim = ch;
-	      state = 2;
-	    }
-	  else if (state == 2 && ch == delim)
-	    state = 3;
-	  else
-	    break;
+          if (state == 1)
+            {
+              delim = ch;
+              state = 2;
+            }
+          else if (state == 2 && ch == delim)
+            state = 3;
+          else
+            break;
 
-	  continue;
+          continue;
 
-	case OPEN_BRACKET:
-	  if (pending_mb)
-	    continue;
+        case OPEN_BRACKET:
+          if (mb_char)
+            continue;
 
-	  if (state == 0)
-	    state = 1;
-	  continue;
+          if (state == 0)
+            state = 1;
+          continue;
 
-	case CLOSE_BRACKET:
-	  if (pending_mb)
-	    continue;
+        case CLOSE_BRACKET:
+          if (mb_char)
+            continue;
 
-	  if (state == 0 || state == 1)
-	    return ch;
-	  else if (state == 3)
-	    state = 0;
+          if (state == 0 || state == 1)
+            return ch;
+          else if (state == 3)
+            state = 0;
 
-	  break;
+          break;
 
-	default:
-	  break;
-	}
+        default:
+          break;
+        }
 
       /* Getting a character different from .=: whilst in state 1
          goes back to state 0, getting a character different from ]
@@ -511,52 +510,48 @@ snarf_char_class(b, cur_stat)
     }
 }
 
-static struct buffer *match_slash (int slash, int regex);
 static struct buffer *
-match_slash(slash, regex)
-  int slash;
-  int regex;
+match_slash (int slash, int regex)
 {
   struct buffer *b;
   int ch;
-  mbstate_t cur_stat;
-
-  memset (&cur_stat, 0, sizeof (mbstate_t));
+  mbstate_t cur_stat = { 0, };
 
   /* We allow only 1 byte characters for a slash.  */
-  if (BRLEN (slash, &cur_stat) == -2)
+  if (IS_MB_CHAR (slash, &cur_stat))
     bad_prog (BAD_DELIM);
 
-  memset (&cur_stat, 0, sizeof (mbstate_t));
+  memset (&cur_stat, 0, sizeof cur_stat);
 
   b = init_buffer();
   while ((ch = inchar()) != EOF && ch != '\n')
     {
-      bool pending_mb = !MBSINIT (&cur_stat);
-      if (BRLEN (ch, &cur_stat) == 1 && !pending_mb)
-	{
-	  if (ch == slash)
-	    return b;
-	  else if (ch == '\\')
-	    {
-	      ch = inchar();
-	      if (ch == EOF)
-	        break;
+      const int mb_char = IS_MB_CHAR (ch, &cur_stat);
+
+      if (!mb_char)
+        {
+          if (ch == slash)
+            return b;
+          else if (ch == '\\')
+            {
+              ch = inchar();
+              if (ch == EOF)
+                break;
 #ifndef REG_PERL
-	      else if (ch == 'n' && regex)
-	        ch = '\n';
+              else if (ch == 'n' && regex)
+                ch = '\n';
 #endif
-	      else if (ch != '\n' && (ch != slash || (!regex && ch == '&')))
-	        add1_buffer(b, '\\');
-	    }
+              else if (ch != '\n' && (ch != slash || (!regex && ch == '&')))
+                add1_buffer(b, '\\');
+            }
           else if (ch == OPEN_BRACKET && regex)
-	    {
-	      add1_buffer(b, ch);
-	      ch = snarf_char_class(b, &cur_stat);
-	      if (ch != CLOSE_BRACKET)
-	        break;
-	    }
-	}
+            {
+              add1_buffer(b, ch);
+              ch = snarf_char_class(b, &cur_stat);
+              if (ch != CLOSE_BRACKET)
+                break;
+            }
+        }
 
       add1_buffer(b, ch);
     }
@@ -567,10 +562,8 @@ match_slash(slash, regex)
   return NULL;
 }
 
-static int mark_subst_opts (struct subst *cmd);
 static int
-mark_subst_opts(cmd)
-  struct subst *cmd;
+mark_subst_opts (struct subst *cmd)
 {
   int flags = 0;
   int ch;
@@ -586,90 +579,91 @@ mark_subst_opts(cmd)
       {
       case 'i':	/* GNU extension */
       case 'I':	/* GNU extension */
-	if (posixicity == POSIXLY_BASIC)
-	  bad_prog(_(UNKNOWN_S_OPT));
-	flags |= REG_ICASE;
-	break;
+        if (posixicity == POSIXLY_BASIC)
+          bad_prog(_(UNKNOWN_S_OPT));
+        flags |= REG_ICASE;
+        break;
 
 #ifdef REG_PERL
       case 's':	/* GNU extension */
       case 'S':	/* GNU extension */
-	if (posixicity == POSIXLY_BASIC)
-	  bad_prog(_(UNKNOWN_S_OPT));
-	if (extended_regexp_flags & REG_PERL)
-	  flags |= REG_DOTALL;
-	break;
+        if (posixicity == POSIXLY_BASIC)
+          bad_prog(_(UNKNOWN_S_OPT));
+        if (extended_regexp_flags & REG_PERL)
+          flags |= REG_DOTALL;
+        break;
 
       case 'x':	/* GNU extension */
       case 'X':	/* GNU extension */
-	if (posixicity == POSIXLY_BASIC)
-	  bad_prog(_(UNKNOWN_S_OPT));
-	if (extended_regexp_flags & REG_PERL)
-	  flags |= REG_EXTENDED;
-	break;
+        if (posixicity == POSIXLY_BASIC)
+          bad_prog(_(UNKNOWN_S_OPT));
+        if (extended_regexp_flags & REG_PERL)
+          flags |= REG_EXTENDED;
+        break;
 #endif
 
       case 'm':	/* GNU extension */
       case 'M':	/* GNU extension */
-	if (posixicity == POSIXLY_BASIC)
-	  bad_prog(_(UNKNOWN_S_OPT));
-	flags |= REG_NEWLINE;
-	break;
+        if (posixicity == POSIXLY_BASIC)
+          bad_prog(_(UNKNOWN_S_OPT));
+        flags |= REG_NEWLINE;
+        break;
 
       case 'e':
-	cmd->eval = true;
-	break;
+        if (posixicity == POSIXLY_BASIC)
+          bad_prog(_(UNKNOWN_S_OPT));
+        cmd->eval = true;
+        break;
 
       case 'p':
-	if (cmd->print)
-	  bad_prog(_(EXCESS_P_OPT));
-	cmd->print |= (1 << cmd->eval); /* 1=before eval, 2=after */
-	break;
+        if (cmd->print)
+          bad_prog(_(EXCESS_P_OPT));
+        cmd->print |= (1 << cmd->eval); /* 1=before eval, 2=after */
+        break;
 
       case 'g':
-	if (cmd->global)
-	  bad_prog(_(EXCESS_G_OPT));
-	cmd->global = true;
-	break;
+        if (cmd->global)
+          bad_prog(_(EXCESS_G_OPT));
+        cmd->global = true;
+        break;
 
       case 'w':
-	cmd->outf = get_openfile(&file_write, write_mode, true);
-	return flags;
+        cmd->outf = get_openfile(&file_write, write_mode, true);
+        return flags;
 
       case '0': case '1': case '2': case '3': case '4':
       case '5': case '6': case '7': case '8': case '9':
-	if (cmd->numb)
-	  bad_prog(_(EXCESS_N_OPT));
-	cmd->numb = in_integer(ch);
-	if (!cmd->numb)
-	  bad_prog(_(ZERO_N_OPT));
-	break;
+        if (cmd->numb)
+          bad_prog(_(EXCESS_N_OPT));
+        cmd->numb = in_integer(ch);
+        if (!cmd->numb)
+          bad_prog(_(ZERO_N_OPT));
+        break;
 
       case CLOSE_BRACE:
       case '#':
-	savchar(ch);
-	/* Fall Through */
+        savchar(ch);
+        /* Fall Through */
       case EOF:
       case '\n':
       case ';':
-	return flags;
+        return flags;
 
       case '\r':
-	if (inchar() == '\n')
-	  return flags;
-	/* FALLTHROUGH */
+        if (inchar() == '\n')
+          return flags;
+        /* FALLTHROUGH */
 
       default:
-	bad_prog(_(UNKNOWN_S_OPT));
-	/*NOTREACHED*/
+        bad_prog(_(UNKNOWN_S_OPT));
+        /*NOTREACHED*/
       }
 }
 
 
 /* read in a label for a `:', `b', or `t' command */
-static char *read_label (void);
 static char *
-read_label()
+read_label (void)
 {
   struct buffer *b;
   int ch;
@@ -679,7 +673,7 @@ read_label()
   ch = in_nonblank();
 
   while (ch != EOF && ch != '\n'
-	 && !ISBLANK(ch) && ch != ';' && ch != CLOSE_BRACE && ch != '#')
+         && !ISBLANK(ch) && ch != ';' && ch != CLOSE_BRACE && ch != '#')
     ch = add_then_next (b, ch);
 
   savchar(ch);
@@ -693,14 +687,9 @@ read_label()
    command so that the jump to/from the label can be backpatched after
    compilation is complete, or a reference created by a `{' to be
    backpatched when the corresponding `}' is found.  */
-static struct sed_label *setup_label
-  (struct sed_label *, countT, char *, const struct error_info *);
 static struct sed_label *
-setup_label(list, idx, name, err_info)
-  struct sed_label *list;
-  countT idx;
-  char *name;
-  const struct error_info *err_info;
+setup_label(struct sed_label *list, countT idx, char *name,
+            const struct error_info *err_info)
 {
   struct sed_label *ret = OB_MALLOC(&obs, 1, struct sed_label);
   ret->v_index = idx;
@@ -711,10 +700,8 @@ setup_label(list, idx, name, err_info)
   return ret;
 }
 
-static struct sed_label *release_label (struct sed_label *list_head);
 static struct sed_label *
-release_label(list_head)
-  struct sed_label *list_head;
+release_label (struct sed_label *list_head)
 {
   struct sed_label *ret;
 
@@ -745,12 +732,8 @@ new_replacement(char *text, size_t length, enum replacement_types type)
   return r;
 }
 
-static void setup_replacement (struct subst *, const char *, size_t);
 static void
-setup_replacement(sub, text, length)
-     struct subst *sub;
-     const char *text;
-     size_t length;
+setup_replacement (struct subst *sub, const char *text, size_t length)
 {
   char *base;
   char *p;
@@ -769,77 +752,77 @@ setup_replacement(sub, text, length)
   for (p=base; p<text_end; ++p)
     {
       if (*p == '\\')
-	{
-	  /* Preceding the backslash may be some literal text: */
-	  tail = tail->next =
-	    new_replacement(base, (size_t)(p - base), repl_type);
+        {
+          /* Preceding the backslash may be some literal text: */
+          tail = tail->next =
+            new_replacement(base, (size_t)(p - base), repl_type);
 
-	  repl_type = save_type;
+          repl_type = save_type;
 
-	  /* Skip the backslash and look for a numeric back-reference,
-	     or a case-munging escape if not in POSIX mode: */
-	  ++p;
-	  if (p == text_end)
-	    ++tail->prefix_length;
+          /* Skip the backslash and look for a numeric back-reference,
+             or a case-munging escape if not in POSIX mode: */
+          ++p;
+          if (p == text_end)
+            ++tail->prefix_length;
 
-	  else if (posixicity == POSIXLY_BASIC && !ISDIGIT (*p))
-	    {
-	      p[-1] = *p;
-	      ++tail->prefix_length;
-	    }
+          else if (posixicity == POSIXLY_BASIC && !ISDIGIT (*p))
+            {
+              p[-1] = *p;
+              ++tail->prefix_length;
+            }
 
-	  else
-	    switch (*p)
-	      {
-	      case '0': case '1': case '2': case '3': case '4': 
-	      case '5': case '6': case '7': case '8': case '9': 
-		tail->subst_id = *p - '0';
-		if (sub->max_id < tail->subst_id)
-		  sub->max_id = tail->subst_id;
-		break;
+          else
+            switch (*p)
+              {
+              case '0': case '1': case '2': case '3': case '4':
+              case '5': case '6': case '7': case '8': case '9':
+                tail->subst_id = *p - '0';
+                if (sub->max_id < tail->subst_id)
+                  sub->max_id = tail->subst_id;
+                break;
 
-	      case 'L':
-		repl_type = REPL_LOWERCASE;
-		save_type = REPL_LOWERCASE;
-		break;
+              case 'L':
+                repl_type = REPL_LOWERCASE;
+                save_type = REPL_LOWERCASE;
+                break;
 
-	      case 'U':
-		repl_type = REPL_UPPERCASE;
-		save_type = REPL_UPPERCASE;
-		break;
-		
-	      case 'E':
-		repl_type = REPL_ASIS;
-		save_type = REPL_ASIS;
-		break;
+              case 'U':
+                repl_type = REPL_UPPERCASE;
+                save_type = REPL_UPPERCASE;
+                break;
 
-	      case 'l':
-		save_type = repl_type;
-		repl_type |= REPL_LOWERCASE_FIRST;
-		break;
+              case 'E':
+                repl_type = REPL_ASIS;
+                save_type = REPL_ASIS;
+                break;
 
-	      case 'u':
-		save_type = repl_type;
-		repl_type |= REPL_UPPERCASE_FIRST;
-		break;
-		
-	      default:
-		p[-1] = *p;
-		++tail->prefix_length;
-	      }
+              case 'l':
+                save_type = repl_type;
+                repl_type |= REPL_LOWERCASE_FIRST;
+                break;
 
-	  base = p + 1;
-	}
+              case 'u':
+                save_type = repl_type;
+                repl_type |= REPL_UPPERCASE_FIRST;
+                break;
+
+              default:
+                p[-1] = *p;
+                ++tail->prefix_length;
+              }
+
+          base = p + 1;
+        }
       else if (*p == '&')
-	{
-	  /* Preceding the ampersand may be some literal text: */
-	  tail = tail->next =
-	    new_replacement(base, (size_t)(p - base), repl_type);
+        {
+          /* Preceding the ampersand may be some literal text: */
+          tail = tail->next =
+            new_replacement(base, (size_t)(p - base), repl_type);
 
-	  repl_type = save_type;
-	  tail->subst_id = 0;
-	  base = p + 1;
-	}
+          repl_type = save_type;
+          tail->subst_id = 0;
+          base = p + 1;
+        }
   }
   /* There may be some trailing literal text: */
   if (base < text_end)
@@ -850,11 +833,8 @@ setup_replacement(sub, text, length)
   sub->replacement = root.next;
 }
 
-static void read_text (struct text_buf *buf, int leadin_ch);
 static void
-read_text(buf, leadin_ch)
-  struct text_buf *buf;
-  int leadin_ch;
+read_text (struct text_buf *buf, int leadin_ch)
 {
   int ch;
 
@@ -862,7 +842,7 @@ read_text(buf, leadin_ch)
   if (buf)
     {
       if (pending_text)
-	free_buffer(pending_text);
+        free_buffer(pending_text);
       pending_text = init_buffer();
       buf->text = NULL;
       buf->text_length = 0;
@@ -880,17 +860,17 @@ read_text(buf, leadin_ch)
   while (ch != EOF && ch != '\n')
     {
       if (ch == '\\')
-	{
-	  ch = inchar();
-	  if (ch != EOF)
-	    add1_buffer (pending_text, '\\');
-	}
+        {
+          ch = inchar();
+          if (ch != EOF)
+            add1_buffer (pending_text, '\\');
+        }
 
       if (ch == EOF)
-	{
-	  add1_buffer (pending_text, '\n');
-	  return;
-	}
+        {
+          add1_buffer (pending_text, '\n');
+          return;
+        }
 
       ch = add_then_next (pending_text, ch);
     }
@@ -899,7 +879,7 @@ read_text(buf, leadin_ch)
   if (!buf)
     buf = old_text_buf;
   buf->text_length = normalize_text (get_buffer (pending_text),
-				     size_buffer (pending_text), TEXT_BUFFER);
+                                     size_buffer (pending_text), TEXT_BUFFER);
   buf->text = MEMDUP(get_buffer(pending_text), buf->text_length, char);
   free_buffer(pending_text);
   pending_text = NULL;
@@ -910,11 +890,8 @@ read_text(buf, leadin_ch)
    return non-zero and store the resulting address in `*addr'.
    If the input doesn't look like an address read nothing
    and return zero.  */
-static bool compile_address (struct addr *addr, int ch);
 static bool
-compile_address(addr, ch)
-  struct addr *addr;
-  int ch;
+compile_address (struct addr *addr, int ch)
 {
   addr->addr_type = ADDR_IS_NULL;
   addr->addr_step = 0;
@@ -927,45 +904,45 @@ compile_address(addr, ch)
       struct buffer *b;
       addr->addr_type = ADDR_IS_REGEX;
       if (ch == '\\')
-	ch = inchar();
+        ch = inchar();
       if ( !(b = match_slash(ch, true)) )
-	bad_prog(_(UNTERM_ADDR_RE));
+        bad_prog(_(UNTERM_ADDR_RE));
 
       for(;;)
-	{
-	  ch = in_nonblank();
-	  if (posixicity == POSIXLY_BASIC)
-	    goto posix_address_modifier;
+        {
+          ch = in_nonblank();
+          if (posixicity == POSIXLY_BASIC)
+            goto posix_address_modifier;
           switch(ch)
-	    {
-	    case 'I':	/* GNU extension */
-	      flags |= REG_ICASE;
-	      break;
+            {
+            case 'I':	/* GNU extension */
+              flags |= REG_ICASE;
+              break;
 
 #ifdef REG_PERL
-	    case 'S':	/* GNU extension */
-	      if (extended_regexp_flags & REG_PERL)
-		flags |= REG_DOTALL;
-	      break;
+            case 'S':	/* GNU extension */
+              if (extended_regexp_flags & REG_PERL)
+                flags |= REG_DOTALL;
+              break;
 
-	    case 'X':	/* GNU extension */
-	      if (extended_regexp_flags & REG_PERL)
-		flags |= REG_EXTENDED;
-	      break;
+            case 'X':	/* GNU extension */
+              if (extended_regexp_flags & REG_PERL)
+                flags |= REG_EXTENDED;
+              break;
 #endif
 
-	    case 'M':	/* GNU extension */
-	      flags |= REG_NEWLINE;
-	      break;
+            case 'M':	/* GNU extension */
+              flags |= REG_NEWLINE;
+              break;
 
-	    default:
-	    posix_address_modifier:
-	      savchar (ch);
-	      addr->addr_regex = compile_regex (b, flags, 0);
-	      free_buffer(b);
-	      return true;
-	    }
-	}
+            default:
+            posix_address_modifier:
+              savchar (ch);
+              addr->addr_regex = compile_regex (b, flags, 0);
+              free_buffer(b);
+              return true;
+            }
+        }
     }
   else if (ISDIGIT(ch))
     {
@@ -973,28 +950,28 @@ compile_address(addr, ch)
       addr->addr_type = ADDR_IS_NUM;
       ch = in_nonblank();
       if (ch != '~' || posixicity == POSIXLY_BASIC)
-	{
-	  savchar(ch);
-	}
+        {
+          savchar(ch);
+        }
       else
-	{
-	  countT step = in_integer(in_nonblank());
-	  if (step > 0)
-	    {
-	      addr->addr_step = step;
-	      addr->addr_type = ADDR_IS_NUM_MOD;
-	    }
-	}
+        {
+          countT step = in_integer(in_nonblank());
+          if (step > 0)
+            {
+              addr->addr_step = step;
+              addr->addr_type = ADDR_IS_NUM_MOD;
+            }
+        }
     }
   else if ((ch == '+' || ch == '~') && posixicity != POSIXLY_BASIC)
     {
       addr->addr_step = in_integer(in_nonblank());
       if (addr->addr_step==0)
-	; /* default to ADDR_IS_NULL; forces matching to stop on next line */
+        ; /* default to ADDR_IS_NULL; forces matching to stop on next line */
       else if (ch == '+')
-	addr->addr_type = ADDR_IS_STEP;
+        addr->addr_type = ADDR_IS_STEP;
       else
-	addr->addr_type = ADDR_IS_STEP_MOD;
+        addr->addr_type = ADDR_IS_STEP_MOD;
     }
   else if (ch == '$')
     {
@@ -1008,10 +985,8 @@ compile_address(addr, ch)
 
 /* Read a program (or a subprogram within `{' `}' pairs) in and store
    the compiled form in `*vector'.  Return a pointer to the new vector.  */
-static struct vector *compile_program (struct vector *);
 static struct vector *
-compile_program(vector)
-  struct vector *vector;
+compile_program(struct vector *vector)
 {
   struct sed_cmd *cur_cmd;
   struct buffer *b;
@@ -1034,176 +1009,185 @@ compile_program(vector)
       struct addr a;
 
       while ((ch=inchar()) == ';' || ISSPACE(ch))
-	;
+        ;
       if (ch == EOF)
-	break;
+        break;
 
       cur_cmd = next_cmd_entry(&vector);
       if (compile_address(&a, ch))
-	{
-	  if (a.addr_type == ADDR_IS_STEP
-	      || a.addr_type == ADDR_IS_STEP_MOD)
-	    bad_prog(_(BAD_STEP));
+        {
+          if (a.addr_type == ADDR_IS_STEP
+              || a.addr_type == ADDR_IS_STEP_MOD)
+            bad_prog(_(BAD_STEP));
 
-	  cur_cmd->a1 = MEMDUP(&a, 1, struct addr);
-	  ch = in_nonblank();
-	  if (ch == ',')
-	    {
-	      if (!compile_address(&a, in_nonblank()))
-		bad_prog(_(BAD_COMMA));
+          cur_cmd->a1 = MEMDUP(&a, 1, struct addr);
+          ch = in_nonblank();
+          if (ch == ',')
+            {
+              if (!compile_address(&a, in_nonblank()))
+                bad_prog(_(BAD_COMMA));
 
-	      cur_cmd->a2 = MEMDUP(&a, 1, struct addr);
-	      ch = in_nonblank();
-	    }
+              cur_cmd->a2 = MEMDUP(&a, 1, struct addr);
+              ch = in_nonblank();
+            }
 
-	  if ((cur_cmd->a1->addr_type == ADDR_IS_NUM
-	       && cur_cmd->a1->addr_number == 0)
-	      && ((!cur_cmd->a2 || cur_cmd->a2->addr_type != ADDR_IS_REGEX)
-		  || posixicity == POSIXLY_BASIC))
-	    bad_prog(_(INVALID_LINE_0));
-	}
+          if ((cur_cmd->a1->addr_type == ADDR_IS_NUM
+               && cur_cmd->a1->addr_number == 0)
+              && ((!cur_cmd->a2 || cur_cmd->a2->addr_type != ADDR_IS_REGEX)
+                  || posixicity == POSIXLY_BASIC))
+            bad_prog(_(INVALID_LINE_0));
+        }
       if (ch == '!')
-	{
-	  cur_cmd->addr_bang = true;
-	  ch = in_nonblank();
-	  if (ch == '!')
-	    bad_prog(_(BAD_BANG));
-	}
+        {
+          cur_cmd->addr_bang = true;
+          ch = in_nonblank();
+          if (ch == '!')
+            bad_prog(_(BAD_BANG));
+        }
 
       /* Do not accept extended commands in --posix mode.  Also,
-	 a few commands only accept one address in that mode.  */
+         a few commands only accept one address in that mode.  */
       if (posixicity == POSIXLY_BASIC)
        switch (ch)
          {
            case 'e': case 'F': case 'v': case 'z': case 'L':
            case 'Q': case 'T': case 'R': case 'W':
              bad_command(ch);
+             /* FALLTHROUGH */
 
-	    case 'a': case 'i': case 'l':
-	    case '=': case 'r':
-	      if (cur_cmd->a2)
-	        bad_prog(_(ONE_ADDR));
-	  }
+            case 'a': case 'i': case 'l':
+            case '=': case 'r':
+              if (cur_cmd->a2)
+                bad_prog(_(ONE_ADDR));
+          }
 
       cur_cmd->cmd = ch;
       switch (ch)
-	{
-	case '#':
-	  if (cur_cmd->a1)
-	    bad_prog(_(NO_SHARP_ADDR));
-	  ch = inchar();
-	  if (ch=='n' && first_script && cur_input.line < 2)
-	    if (   (prog.base && prog.cur==2+prog.base)
-		|| (prog.file && !prog.base && 2==ftell(prog.file)))
-	      no_default_output = true;
-	  while (ch != EOF && ch != '\n')
-	    ch = inchar();
-	  continue;	/* restart the for (;;) loop */
+        {
+        case '#':
+          if (cur_cmd->a1)
+            bad_prog(_(NO_SHARP_ADDR));
+          ch = inchar();
+          if (ch=='n' && first_script && cur_input.line < 2)
+            if (   (prog.base && prog.cur==2+prog.base)
+                || (prog.file && !prog.base && 2==ftell(prog.file)))
+              no_default_output = true;
+          while (ch != EOF && ch != '\n')
+            ch = inchar();
+          continue;	/* restart the for (;;) loop */
 
-	case 'v':
-	  /* This is an extension.  Programs needing GNU sed might start
-	   * with a `v' command so that other seds will stop.
-	   * We compare the version and ignore POSIXLY_CORRECT.
-	   */
-	  {
-	    char *version = read_label ();
-	    char *compared_version;
-	    compared_version = (*version == '\0') ? "4.0" : version;
-	    if (strverscmp (compared_version, SED_FEATURE_VERSION) > 0)
-	      bad_prog(_(ANCIENT_VERSION));
+        case 'v':
+          /* This is an extension.  Programs needing GNU sed might start
+           * with a `v' command so that other seds will stop.
+           * We compare the version and ignore POSIXLY_CORRECT.
+           */
+          {
+            char *version = read_label ();
+            char const *compared_version;
+            compared_version = (*version == '\0') ? "4.0" : version;
+            if (strverscmp (compared_version, PACKAGE_VERSION) > 0)
+              bad_prog(_(ANCIENT_VERSION));
 
-	    free (version);
-	    posixicity = POSIXLY_EXTENDED;
-	  }
-	  continue;
+            free (version);
+            posixicity = POSIXLY_EXTENDED;
+          }
+          continue;
 
-	case '{':
-	  blocks = setup_label(blocks, vector->v_length, NULL, &cur_input);
-	  cur_cmd->addr_bang = !cur_cmd->addr_bang;
-	  break;
+        case '{':
+          blocks = setup_label(blocks, vector->v_length, NULL, &cur_input);
+          cur_cmd->addr_bang = !cur_cmd->addr_bang;
+          break;
 
-	case '}':
-	  if (!blocks)
-	    bad_prog(_(EXCESS_CLOSE_BRACE));
-	  if (cur_cmd->a1)
-	    bad_prog(_(NO_CLOSE_BRACE_ADDR));
-	  ch = in_nonblank();
-	  if (ch == CLOSE_BRACE || ch == '#')
-	    savchar(ch);
-	  else if (ch != EOF && ch != '\n' && ch != ';')
-	    bad_prog(_(EXCESS_JUNK));
+        case '}':
+          if (!blocks)
+            bad_prog(_(EXCESS_CLOSE_BRACE));
+          if (cur_cmd->a1)
+            bad_prog(_(NO_CLOSE_BRACE_ADDR));
+          ch = in_nonblank();
+          if (ch == CLOSE_BRACE || ch == '#')
+            savchar(ch);
+          else if (ch != EOF && ch != '\n' && ch != ';')
+            bad_prog(_(EXCESS_JUNK));
 
-	  vector->v[blocks->v_index].x.jump_index = vector->v_length;
-	  blocks = release_label(blocks);	/* done with this entry */
-	  break;
+          vector->v[blocks->v_index].x.jump_index = vector->v_length;
+          blocks = release_label(blocks);	/* done with this entry */
+          break;
 
-	case 'e':
-	  ch = in_nonblank();
-	  if (ch == EOF || ch == '\n')
-	    {
-	      cur_cmd->x.cmd_txt.text_length = 0;
-	      break;
-	    }
-	  else
-	    goto read_text_to_slash;
+        case 'e':
+          if (sandbox)
+            bad_prog(_(DISALLOWED_CMD));
 
-	case 'a':
-	case 'i':
-	case 'c':
-	  ch = in_nonblank();
+          ch = in_nonblank();
+          if (ch == EOF || ch == '\n')
+            {
+              cur_cmd->x.cmd_txt.text_length = 0;
+              break;
+            }
+          else
+            goto read_text_to_slash;
 
-	read_text_to_slash:
-	  if (ch == EOF)
-	    bad_prog(_(EXPECTED_SLASH));
-	      
-	  if (ch == '\\')
-	    ch = inchar();
-	  else
-	    {
-	      if (posixicity == POSIXLY_BASIC)
-		bad_prog(_(EXPECTED_SLASH));
-	      savchar(ch);
-	      ch = '\n';
-	    }
+        case 'a':
+        case 'i':
+        case 'c':
+          ch = in_nonblank();
 
-	  read_text(&cur_cmd->x.cmd_txt, ch);
-	  break;
+        read_text_to_slash:
+          if (ch == EOF)
+            bad_prog(_(EXPECTED_SLASH));
 
-	case ':':
-	  if (cur_cmd->a1)
-	    bad_prog(_(NO_COLON_ADDR));
-	  labels = setup_label(labels, vector->v_length, read_label(), NULL);
-	  break;
-	
-	case 'T':
-	case 'b':
-	case 't':
-	  jumps = setup_label(jumps, vector->v_length, read_label(), NULL);
-	  break;
+          if (ch == '\\')
+            ch = inchar();
+          else
+            {
+              if (posixicity == POSIXLY_BASIC)
+                bad_prog(_(EXPECTED_SLASH));
+              savchar(ch);
+              ch = '\n';
+            }
 
-	case 'Q':
-	case 'q':
-	  if (cur_cmd->a2)
-	    bad_prog(_(ONE_ADDR));
-	  /* Fall through */
+          read_text(&cur_cmd->x.cmd_txt, ch);
+          break;
 
-	case 'L':
-	case 'l':
-	  ch = in_nonblank();
-	  if (ISDIGIT(ch) && posixicity != POSIXLY_BASIC)
-	    {
-	      cur_cmd->x.int_arg = in_integer(ch);
-	      ch = in_nonblank();
-	    }
-	  else
-	    cur_cmd->x.int_arg = -1;
+        case ':':
+          if (cur_cmd->a1)
+            bad_prog(_(NO_COLON_ADDR));
+          {
+            char *label = read_label ();
+            if (!*label)
+              bad_prog(_(COLON_LACKS_LABEL));
+            labels = setup_label(labels, vector->v_length, label, NULL);
+          }
+          break;
 
-	  if (ch == CLOSE_BRACE || ch == '#')
-	    savchar(ch);
-	  else if (ch != EOF && ch != '\n' && ch != ';')
-	    bad_prog(_(EXCESS_JUNK));
+        case 'T':
+        case 'b':
+        case 't':
+          jumps = setup_label(jumps, vector->v_length, read_label(), NULL);
+          break;
 
-	  break;
+        case 'Q':
+        case 'q':
+          if (cur_cmd->a2)
+            bad_prog(_(ONE_ADDR));
+          /* Fall through */
+
+        case 'L':
+        case 'l':
+          ch = in_nonblank();
+          if (ISDIGIT(ch) && posixicity != POSIXLY_BASIC)
+            {
+              cur_cmd->x.int_arg = in_integer(ch);
+              ch = in_nonblank();
+            }
+          else
+            cur_cmd->x.int_arg = -1;
+
+          if (ch == CLOSE_BRACE || ch == '#')
+            savchar(ch);
+          else if (ch != EOF && ch != '\n' && ch != ';')
+            bad_prog(_(EXCESS_JUNK));
+
+          break;
 
        case '=':
        case 'd':
@@ -1212,92 +1196,94 @@ compile_program(vector)
        case 'g':
        case 'G':
        case 'h':
-	case 'H':
-	case 'n':
-	case 'N':
-	case 'p':
-	case 'P':
-	case 'z':
-	case 'x':
-	  ch = in_nonblank();
-	  if (ch == CLOSE_BRACE || ch == '#')
-	    savchar(ch);
-	  else if (ch != EOF && ch != '\n' && ch != ';')
-	    bad_prog(_(EXCESS_JUNK));
-	  break;
+        case 'H':
+        case 'n':
+        case 'N':
+        case 'p':
+        case 'P':
+        case 'z':
+        case 'x':
+          ch = in_nonblank();
+          if (ch == CLOSE_BRACE || ch == '#')
+            savchar(ch);
+          else if (ch != EOF && ch != '\n' && ch != ';')
+            bad_prog(_(EXCESS_JUNK));
+          break;
 
-	case 'r':
-	  b = read_filename();
-	  cur_cmd->x.fname = ck_strdup(get_buffer(b));
-	  free_buffer(b);
-	  break;
+        case 'r':
+          b = read_filename();
+          cur_cmd->x.fname = ck_strdup(get_buffer(b));
+          free_buffer(b);
+          break;
 
         case 'R':
-	  cur_cmd->x.fp = get_openfile(&file_read, read_mode, false)->fp;
-	  break;
+          cur_cmd->x.fp = get_openfile(&file_read, read_mode, false)->fp;
+          break;
 
         case 'W':
-	case 'w':
-	  cur_cmd->x.outf = get_openfile(&file_write, write_mode, true);
-	  break;
+        case 'w':
+          cur_cmd->x.outf = get_openfile(&file_write, write_mode, true);
+          break;
 
-	case 's':
-	  {
-	    struct buffer *b2;
-	    int flags;
-	    int slash;
+        case 's':
+          {
+            struct buffer *b2;
+            int flags;
+            int slash;
 
-	    slash = inchar();
-	    if ( !(b  = match_slash(slash, true)) )
-	      bad_prog(_(UNTERM_S_CMD));
-	    if ( !(b2 = match_slash(slash, false)) )
-	      bad_prog(_(UNTERM_S_CMD));
+            slash = inchar();
+            if ( !(b  = match_slash(slash, true)) )
+              bad_prog(_(UNTERM_S_CMD));
+            if ( !(b2 = match_slash(slash, false)) )
+              bad_prog(_(UNTERM_S_CMD));
 
-	    cur_cmd->x.cmd_subst = OB_MALLOC(&obs, 1, struct subst);
-	    setup_replacement(cur_cmd->x.cmd_subst,
-			      get_buffer(b2), size_buffer(b2));
-	    free_buffer(b2);
+            cur_cmd->x.cmd_subst = OB_MALLOC(&obs, 1, struct subst);
+            setup_replacement(cur_cmd->x.cmd_subst,
+                              get_buffer(b2), size_buffer(b2));
+            free_buffer(b2);
 
-	    flags = mark_subst_opts(cur_cmd->x.cmd_subst);
-	    cur_cmd->x.cmd_subst->regx =
-	      compile_regex(b, flags, cur_cmd->x.cmd_subst->max_id + 1);
-	    free_buffer(b);
-	  }
-	  break;
+            flags = mark_subst_opts(cur_cmd->x.cmd_subst);
+            cur_cmd->x.cmd_subst->regx =
+              compile_regex(b, flags, cur_cmd->x.cmd_subst->max_id + 1);
+            free_buffer(b);
 
-	case 'y':
-	  {
-	    size_t len, dest_len;
-	    int slash;
-	    struct buffer *b2;
+            if (cur_cmd->x.cmd_subst->eval && sandbox)
+              bad_prog(_(DISALLOWED_CMD));
+          }
+          break;
+
+        case 'y':
+          {
+            size_t len, dest_len;
+            int slash;
+            struct buffer *b2;
             char *src_buf, *dest_buf;
-  
-	    slash = inchar();
-	    if ( !(b = match_slash(slash, false)) )
-	      bad_prog(_(UNTERM_Y_CMD));
+
+            slash = inchar();
+            if ( !(b = match_slash(slash, false)) )
+              bad_prog(_(UNTERM_Y_CMD));
             src_buf = get_buffer(b);
-	    len = normalize_text(src_buf, size_buffer (b), TEXT_BUFFER);
+            len = normalize_text(src_buf, size_buffer (b), TEXT_BUFFER);
 
             if ( !(b2 = match_slash(slash, false)) )
- 	      bad_prog(_(UNTERM_Y_CMD));
+              bad_prog(_(UNTERM_Y_CMD));
             dest_buf = get_buffer(b2);
-	    dest_len = normalize_text(dest_buf, size_buffer (b2), TEXT_BUFFER);
+            dest_len = normalize_text(dest_buf, size_buffer (b2), TEXT_BUFFER);
 
             if (mb_cur_max > 1)
-	      {
-                int i, j, idx, src_char_num;
+              {
+                size_t i, j, idx, src_char_num;
                 size_t *src_lens = MALLOC(len, size_t);
                 char **trans_pairs;
                 size_t mbclen;
-                mbstate_t cur_stat;
+                mbstate_t cur_stat = { 0, };
 
                 /* Enumerate how many character the source buffer has.  */
-                memset(&cur_stat, 0, sizeof(mbstate_t));
                 for (i = 0, j = 0; i < len;)
                   {
                     mbclen = MBRLEN (src_buf + i, len - i, &cur_stat);
                     /* An invalid sequence, or a truncated multibyte character.
-                       We treat it as a singlebyte character.  */
+                       We treat it as a single-byte character.  */
                     if (mbclen == (size_t) -1 || mbclen == (size_t) -2
                         || mbclen == 0)
                       mbclen = 1;
@@ -1306,7 +1292,7 @@ compile_program(vector)
                   }
                 src_char_num = j;
 
-                memset(&cur_stat, 0, sizeof(mbstate_t));
+                memset(&cur_stat, 0, sizeof cur_stat);
                 idx = 0;
 
                 /* trans_pairs = {src(0), dest(0), src(1), dest(1), ..., NULL}
@@ -1322,21 +1308,21 @@ compile_program(vector)
 
                     /* Set the i-th source character.  */
                     trans_pairs[2 * i] = MALLOC(src_lens[i] + 1, char);
-                    strncpy(trans_pairs[2 * i], src_buf, src_lens[i]);
+                    memcpy(trans_pairs[2 * i], src_buf, src_lens[i]);
                     trans_pairs[2 * i][src_lens[i]] = '\0';
                     src_buf += src_lens[i]; /* Forward to next character.  */
 
                     /* Fetch the i-th destination character.  */
                     mbclen = MBRLEN (dest_buf + idx, dest_len - idx, &cur_stat);
                     /* An invalid sequence, or a truncated multibyte character.
-                       We treat it as a singlebyte character.  */
+                       We treat it as a single-byte character.  */
                     if (mbclen == (size_t) -1 || mbclen == (size_t) -2
                         || mbclen == 0)
                       mbclen = 1;
 
                     /* Set the i-th destination character.  */
                     trans_pairs[2 * i + 1] = MALLOC(mbclen + 1, char);
-                    strncpy(trans_pairs[2 * i + 1], dest_buf + idx, mbclen);
+                    memcpy(trans_pairs[2 * i + 1], dest_buf + idx, mbclen);
                     trans_pairs[2 * i + 1][mbclen] = '\0';
                     idx += mbclen; /* Forward to next character.  */
                   }
@@ -1346,38 +1332,38 @@ compile_program(vector)
               }
             else
               {
-	        unsigned char *translate =
-		  OB_MALLOC(&obs, YMAP_LENGTH, unsigned char);
+                unsigned char *translate =
+                  OB_MALLOC(&obs, YMAP_LENGTH, unsigned char);
                 unsigned char *ustring = (unsigned char *)src_buf;
 
-		if (len != dest_len)
+                if (len != dest_len)
                   bad_prog(_(Y_CMD_LEN));
 
-	        for (len = 0; len < YMAP_LENGTH; len++)
-	          translate[len] = len;
+                for (len = 0; len < YMAP_LENGTH; len++)
+                  translate[len] = len;
 
                 while (dest_len--)
                   translate[*ustring++] = (unsigned char)*dest_buf++;
 
-	        cur_cmd->x.translate = translate;
-	      }
+                cur_cmd->x.translate = translate;
+              }
 
             if ((ch = in_nonblank()) != EOF && ch != '\n' && ch != ';')
               bad_prog(_(EXCESS_JUNK));
 
             free_buffer(b);
             free_buffer(b2);
-	  }
-	break;
+          }
+        break;
 
-	case EOF:
-	  bad_prog(_(NO_COMMAND));
-	  /*NOTREACHED*/
+        case EOF:
+          bad_prog(_(NO_COMMAND));
+          /*NOTREACHED*/
 
-	default:
-	  bad_command (ch);
-	  /*NOTREACHED*/
-	}
+        default:
+          bad_command (ch);
+          /*NOTREACHED*/
+        }
 
       /* this is buried down here so that "continue" statements will miss it */
       ++vector->v_length;
@@ -1390,10 +1376,7 @@ compile_program(vector)
 
 /* deal with \X escapes */
 size_t
-normalize_text(buf, len, buftype)
-  char *buf;
-  size_t len;
-  enum text_types buftype;
+normalize_text(char *buf, size_t len, enum text_types buftype)
 {
   const char *bufend = buf + len;
   char *p = buf;
@@ -1410,84 +1393,83 @@ normalize_text(buf, len, buftype)
   int bracket_state = 0;
 
   int mbclen;
-  mbstate_t cur_stat;
-  memset(&cur_stat, 0, sizeof(mbstate_t));
+  mbstate_t cur_stat = { 0, };
 
   while (p < bufend)
     {
       mbclen = MBRLEN (p, bufend - p, &cur_stat);
       if (mbclen != 1)
-	{
+        {
           /* An invalid sequence, or a truncated multibyte character.
-             We treat it as a singlebyte character.  */
+             We treat it as a single-byte character.  */
           if (mbclen == (size_t) -1 || mbclen == (size_t) -2 || mbclen == 0)
             mbclen = 1;
 
           memmove (q, p, mbclen);
           q += mbclen;
           p += mbclen;
-	  continue;
-	}
+          continue;
+        }
 
       if (*p == '\\' && p+1 < bufend && bracket_state == 0)
-	switch (*++p)
-	  {
+        switch (*++p)
+          {
 #if defined __STDC__ && __STDC__-0
-	  case 'a': *q++ = '\a'; p++; continue;
+          case 'a': *q++ = '\a'; p++; continue;
 #else /* Not STDC; we'll just assume ASCII */
-	  case 'a': *q++ = '\007'; p++; continue;
+          case 'a': *q++ = '\007'; p++; continue;
 #endif
-	  /* case 'b': *q++ = '\b'; p++; continue; --- conflicts with \b RE */
-	  case 'f': *q++ = '\f'; p++; continue;
-	  case '\n': /*fall through */
-	  case 'n': *q++ = '\n'; p++; continue;
-	  case 'r': *q++ = '\r'; p++; continue;
-	  case 't': *q++ = '\t'; p++; continue;
-	  case 'v': *q++ = '\v'; p++; continue;
+          /* case 'b': *q++ = '\b'; p++; continue; --- conflicts with \b RE */
+          case 'f': *q++ = '\f'; p++; continue;
+          case '\n': /*fall through */
+          case 'n': *q++ = '\n'; p++; continue;
+          case 'r': *q++ = '\r'; p++; continue;
+          case 't': *q++ = '\t'; p++; continue;
+          case 'v': *q++ = '\v'; p++; continue;
 
-	  case 'd': /* decimal byte */
+          case 'd': /* decimal byte */
             base = 10;
             goto convert;
 
-	  case 'x': /* hexadecimal byte */
+          case 'x': /* hexadecimal byte */
             base = 16;
             goto convert;
 
 #ifdef REG_PERL
-	  case '0': case '1': case '2': case '3':
-	  case '4': case '5': case '6': case '7':
-	    if ((extended_regexp_flags & REG_PERL)
-		&& p+1 < bufend
-		&& p[1] >= '0' && p[1] <= '9')
-	      {
+          case '0': case '1': case '2': case '3':
+          case '4': case '5': case '6': case '7':
+            if ((extended_regexp_flags & REG_PERL)
+                && p+1 < bufend
+                && p[1] >= '0' && p[1] <= '9')
+              {
                 base = 8;
                 goto convert;
-	      }
-	    else
-	      {
-		/* we just pass the \ up one level for interpretation */
-	        if (buftype != TEXT_BUFFER)
-		  *q++ = '\\';
-	      }
+              }
+            else
+              {
+                /* we just pass the \ up one level for interpretation */
+                if (buftype != TEXT_BUFFER)
+                  *q++ = '\\';
+              }
 
-	    continue;
+            continue;
 
-	  case 'o': /* octal byte */
-	    if (!(extended_regexp_flags & REG_PERL))
-	      {
+          case 'o': /* octal byte */
+            if (!(extended_regexp_flags & REG_PERL))
+              {
                 base = 8;
                 goto convert;
-	      }
-	    else
-	      {
-	        /* we just pass the \ up one level for interpretation */
-	        if (buftype != TEXT_BUFFER)
-		  *q++ = '\\';
-	      }
-	    
-	    continue;
+              }
+            else
+              {
+                /* we just pass the \ up one level for interpretation */
+                if (buftype != TEXT_BUFFER)
+                  *q++ = '\\';
+              }
+
+            continue;
 #else
-	  case 'o': /* octal byte */
+          case 'o': /* octal byte */
             base = 8;
 #endif
 convert:
@@ -1499,27 +1481,33 @@ convert:
             *q++ = ch;
             continue;
 
-	  case 'c':
-	    if (++p < bufend)
-	      {
-		*q++ = toupper((unsigned char) *p) ^ 0x40;
-		p++;
-		continue;
-	      }
-	    else
-	      {
-	        /* we just pass the \ up one level for interpretation */
-	        if (buftype != TEXT_BUFFER)
-		  *q++ = '\\';
-	        continue;
-	      }
+          case 'c':
+            if (++p < bufend)
+              {
+                *q++ = toupper((unsigned char) *p) ^ 0x40;
+                if (*p == '\\')
+                  {
+                    p++;
+                    if (*p != '\\')
+                      bad_prog(RECURSIVE_ESCAPE_C);
+                  }
+                p++;
+                continue;
+              }
+            else
+              {
+                /* we just pass the \ up one level for interpretation */
+                if (buftype != TEXT_BUFFER)
+                  *q++ = '\\';
+                continue;
+              }
 
-	  default:
-	    /* we just pass the \ up one level for interpretation */
-	    if (buftype != TEXT_BUFFER)
-	      *q++ = '\\';
-	    break;
-	  }
+          default:
+            /* we just pass the \ up one level for interpretation */
+            if (buftype != TEXT_BUFFER)
+              *q++ = '\\';
+            break;
+          }
       else if (buftype == TEXT_REGEX && posixicity != POSIXLY_EXTENDED)
         switch (*p)
           {
@@ -1527,17 +1515,17 @@ convert:
             if (!bracket_state)
               bracket_state = -1;
             break;
- 
-	  case ':':
-	  case '.':
-	  case '=':
+
+          case ':':
+          case '.':
+          case '=':
             if (bracket_state == -1 && p[-1] == '[')
               bracket_state = *p;
             break;
 
           case ']':
             if (bracket_state == 0)
-	      ;
+              ;
             else if (bracket_state == -1)
               bracket_state = 0;
             else if (p[-2] != bracket_state && p[-1] == bracket_state)
@@ -1554,10 +1542,7 @@ convert:
 /* `str' is a string (from the command line) that contains a sed command.
    Compile the command, and add it to the end of `cur_program'. */
 struct vector *
-compile_string(cur_program, str, len)
-  struct vector *cur_program;
-  char *str;
-  size_t len;
+compile_string(struct vector *cur_program, char *str, size_t len)
 {
   static countT string_expr_count = 0;
   struct vector *ret;
@@ -1584,9 +1569,7 @@ compile_string(cur_program, str, len)
    Read them in and add them to the end of `cur_program'.
  */
 struct vector *
-compile_file(cur_program, cmdfile)
-  struct vector *cur_program;
-  const char *cmdfile;
+compile_file(struct vector *cur_program, const char *cmdfile)
 {
   struct vector *ret;
 
@@ -1617,8 +1600,7 @@ compile_file(cur_program, cmdfile)
    In particular: this backpatches the jump targets.
    Any cleanup which can be done after these checks is done here also.  */
 void
-check_final_program(program)
-  struct vector *program;
+check_final_program(struct vector *program)
 {
   struct sed_label *go;
   struct sed_label *lbl;
@@ -1637,7 +1619,7 @@ check_final_program(program)
       old_text_buf->text_length = size_buffer(pending_text);
       if (old_text_buf->text_length)
         old_text_buf->text = MEMDUP(get_buffer(pending_text),
-				    old_text_buf->text_length, char);
+                                    old_text_buf->text_length, char);
       free_buffer(pending_text);
       pending_text = NULL;
     }
@@ -1645,18 +1627,18 @@ check_final_program(program)
   for (go = jumps; go; go = release_label(go))
     {
       for (lbl = labels; lbl; lbl = lbl->next)
-	if (strcmp(lbl->name, go->name) == 0)
-	  break;
+        if (strcmp(lbl->name, go->name) == 0)
+          break;
       if (lbl)
-	{
-	  program->v[go->v_index].x.jump_index = lbl->v_index;
-	}
+        {
+          program->v[go->v_index].x.jump_index = lbl->v_index;
+        }
       else
-	{
-	  if (*go->name)
-	    panic(_("can't find label for jump to `%s'"), go->name);
-	  program->v[go->v_index].x.jump_index = program->v_length;
-	}
+        {
+          if (*go->name)
+            panic(_("can't find label for jump to `%s'"), go->name);
+          program->v[go->v_index].x.jump_index = program->v_length;
+        }
     }
   jumps = NULL;
 
@@ -1670,23 +1652,23 @@ check_final_program(program)
 
     for (p=file_read; p; p=p->link)
       if (p->name)
-	{
-	  free(p->name);
-	  p->name = NULL;
-	}
+        {
+          free(p->name);
+          p->name = NULL;
+        }
 
     for (p=file_write; p; p=p->link)
       if (p->name)
-	{
-	  free(p->name);
-	  p->name = NULL;
-	}
+        {
+          free(p->name);
+          p->name = NULL;
+        }
   }
 }
 
 /* Rewind all resources which were allocated in this module. */
 void
-rewind_read_files()
+rewind_read_files(void)
 {
   struct output *p;
 
@@ -1697,8 +1679,7 @@ rewind_read_files()
 
 /* Release all resources which were allocated in this module. */
 void
-finish_program(program)
-  struct vector *program;
+finish_program(void)
 {
   /* close all files... */
   {
@@ -1706,23 +1687,23 @@ finish_program(program)
 
     for (p=file_read; p; p=q)
       {
-	if (p->fp)
-	  ck_fclose(p->fp);
-	q = p->link;
+        if (p->fp)
+          ck_fclose(p->fp);
+        q = p->link;
 #if 0
-	/* We use obstacks. */
-	free(p);
+        /* We use obstacks. */
+        free(p);
 #endif
       }
 
     for (p=file_write; p; p=q)
       {
-	if (p->fp)
-	  ck_fclose(p->fp);
-	q = p->link;
+        if (p->fp)
+          ck_fclose(p->fp);
+        q = p->link;
 #if 0
-	/* We use obstacks. */
-	free(p);
+        /* We use obstacks. */
+        free(p);
 #endif
       }
     file_read = file_write = NULL;

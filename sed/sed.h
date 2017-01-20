@@ -1,6 +1,5 @@
 /*  GNU SED, a batch stream editor.
-    Copyright (C) 1989,90,91,92,93,94,95,98,99,2002,2003
-    Free Software Foundation, Inc.
+    Copyright (C) 1989-2016 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,8 +15,10 @@
     along with this program; if not, write to the Free Software
     Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 
-#include "config.h"
+#include <config.h>
 #include "basicdefs.h"
+#include "dfa.h"
+#include "localeinfo.h"
 #include "regex.h"
 #include <stdio.h>
 #include "unlocked-io.h"
@@ -51,9 +52,12 @@ struct regex {
   regex_t pattern;
   int flags;
   size_t sz;
+  struct dfa *dfa;
+  bool begline;
+  bool endline;
   char re[1];
 };
-  
+
 enum replacement_types {
   REPL_ASIS = 0,
   REPL_UPPERCASE = 1,
@@ -181,18 +185,18 @@ struct sed_cmd {
 
 
 
-void bad_prog (const char *why);
+_Noreturn void bad_prog (const char *why);
 size_t normalize_text (char *text, size_t len, enum text_types buftype);
 struct vector *compile_string (struct vector *, char *str, size_t len);
 struct vector *compile_file (struct vector *, const char *cmdfile);
 void check_final_program (struct vector *);
 void rewind_read_files (void);
-void finish_program (struct vector *);
+void finish_program (void);
 
 struct regex *compile_regex (struct buffer *b, int flags, int needed_sub);
 int match_regex (struct regex *regex,
-		 char *buf, size_t buflen, size_t buf_start_offset,
-		 struct re_registers *regarray, int regsize);
+                 char *buf, size_t buflen, size_t buf_start_offset,
+                 struct re_registers *regarray, int regsize);
 #ifdef DEBUG_LEAKS
 void release_regex (struct regex *);
 #endif
@@ -201,7 +205,7 @@ int process_files (struct vector *, char **argv);
 
 int main (int, char **);
 
-extern void fmt (const char *line, const char *line_end, int max_length, FILE *output_file);
+extern struct localeinfo localeinfo;
 
 extern int extended_regexp_flags;
 
@@ -231,8 +235,8 @@ extern countT lcmd_out_line_len;
 extern char *in_place_extension;
 
 /* The mode to use to read and write files, either "rt"/"w" or "rb"/"wb".  */
-extern char *read_mode;
-extern char *write_mode;
+extern char const *read_mode;
+extern char const *write_mode;
 
 /* Should we use EREs? */
 extern bool use_extended_syntax_p;
@@ -240,6 +244,9 @@ extern bool use_extended_syntax_p;
 /* Declarations for multibyte character sets.  */
 extern int mb_cur_max;
 extern bool is_utf8;
+
+/* If set, operate in 'sandbox' mode - disable e/r/w commands */
+extern bool sandbox;
 
 #define MBRTOWC(pwc, s, n, ps) \
   (mb_cur_max == 1 ? \
@@ -257,9 +264,17 @@ extern bool is_utf8;
 #define MBRLEN(s, n, ps) \
   (mb_cur_max == 1 ? 1 : mbrtowc (NULL, s, n, ps))
 
-#define BRLEN(ch, ps) \
-  (mb_cur_max == 1 ? 1 : brlen (ch, ps))
+#define IS_MB_CHAR(ch, ps)                \
+  (mb_cur_max == 1 ? 0 : is_mb_char (ch, ps))
 
-extern int brlen (int ch, mbstate_t *ps);
+extern int is_mb_char (int ch, mbstate_t *ps);
 extern void initialize_mbcs (void);
+extern void register_cleanup_file (char const *file);
+extern void cancel_cleanup (void);
 
+/* Use this to suppress gcc's '...may be used before initialized' warnings. */
+#ifdef lint
+# define IF_LINT(Code) Code
+#else
+# define IF_LINT(Code) /* empty */
+#endif

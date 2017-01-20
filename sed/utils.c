@@ -1,6 +1,5 @@
 /*  Functions from hack's utils library.
-    Copyright (C) 1989, 1990, 1991, 1998, 1999, 2003, 2008, 2009, 2011
-    Free Software Foundation, Inc.
+    Copyright (C) 1989-2016 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,7 +15,7 @@
     along with this program; if not, write to the Free Software
     Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 
-#include "config.h"
+#include <config.h>
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -28,8 +27,8 @@
 #include <unistd.h>
 #include <limits.h>
 
+#include "unlocked-io.h"
 #include "utils.h"
-#include "pathmax.h"
 #include "fwriting.h"
 
 const char *myname;
@@ -66,26 +65,25 @@ panic(const char *str, ...)
   while (open_files)
     {
       if (open_files->temp)
-	{
-	  fclose (open_files->fp);
-	  errno = 0;
-	  unlink (open_files->name);
+        {
+          fclose (open_files->fp);
+          errno = 0;
+          unlink (open_files->name);
           if (errno != 0)
-            fprintf (stderr, _("cannot remove %s: %s"), open_files->name, strerror (errno));
-	}
+            fprintf (stderr, _("cannot remove %s: %s"), open_files->name,
+                     strerror (errno));
+        }
 
       open_files = open_files->link;
     }
 
-  exit(4);
+  exit(EXIT_PANIC);
 }
 
 
 /* Internal routine to get a filename from open_files */
-static const char *utils_fp_name (FILE *fp);
-static const char *
-utils_fp_name(fp)
-  FILE *fp;
+static const char * _GL_ATTRIBUTE_PURE
+utils_fp_name(FILE *fp)
 {
   struct open_file *p;
 
@@ -103,19 +101,16 @@ utils_fp_name(fp)
 }
 
 static void
-register_open_file (fp, name, temp)
-  FILE *fp;
-  const char *name;
-  int temp;
+register_open_file (FILE *fp, const char *name)
 {
   struct open_file *p;
   for (p=open_files; p; p=p->link)
     {
       if (fp == p->fp)
-	{
-	  free(p->name);
-	  break;
-	}
+        {
+          free(p->name);
+          break;
+        }
     }
   if (!p)
     {
@@ -130,10 +125,7 @@ register_open_file (fp, name, temp)
 
 /* Panic on failing fopen */
 FILE *
-ck_fopen(name, mode, fail)
-  const char *name;
-  const char *mode;
-  int fail;
+ck_fopen(const char *name, const char *mode, int fail)
 {
   FILE *fp;
 
@@ -146,17 +138,13 @@ ck_fopen(name, mode, fail)
       return NULL;
     }
 
-  register_open_file (fp, name, false);
+  register_open_file (fp, name);
   return fp;
 }
 
 /* Panic on failing fdopen */
 FILE *
-ck_fdopen(fd, name, mode, fail)
-  int fd;
-  const char *name;
-  const char *mode;
-  int fail;
+ck_fdopen( int fd, const char *name, const char *mode, int fail)
 {
   FILE *fp;
 
@@ -169,75 +157,47 @@ ck_fdopen(fd, name, mode, fail)
       return NULL;
     }
 
-  register_open_file (fp, name, false);
+  register_open_file (fp, name);
   return fp;
 }
 
 FILE *
-ck_mkstemp (p_filename, tmpdir, base, mode)
-  char **p_filename;
-  const char *base, *tmpdir;
-  const char *mode;
+ck_mkstemp (char **p_filename, const char *tmpdir,
+            const char *base, const char *mode)
 {
-  char *template;
-  FILE *fp;
-  int fd;
-  int save_umask;
-
-  if (tmpdir == NULL)
-    tmpdir = getenv("TMPDIR");
-  if (tmpdir == NULL)
-    {
-      tmpdir = getenv("TMP");
-      if (tmpdir == NULL)
-#ifdef P_tmpdir
-	tmpdir = P_tmpdir;
-#else
-	tmpdir = "/tmp";
-#endif
-    }
-
-  template = xmalloc (strlen (tmpdir) + strlen (base) + 8);
+  char *template = xmalloc (strlen (tmpdir) + strlen (base) + 8);
   sprintf (template, "%s/%sXXXXXX", tmpdir, base);
 
    /* The ownership might change, so omit some permissions at first
       so unauthorized users cannot nip in before the file is ready.
-    
       mkstemp forces O_BINARY on cygwin, so use mkostemp instead.  */
-  save_umask = umask (0700);
-  fd = mkostemp (template, 0);
+  mode_t save_umask = umask (0700);
+  int fd = mkostemp (template, 0);
   umask (save_umask);
   if (fd == -1)
     panic(_("couldn't open temporary file %s: %s"), template, strerror(errno));
 
   *p_filename = template;
-  fp = fdopen (fd, mode);
-  register_open_file (fp, template, true);
+  FILE *fp = fdopen (fd, mode);
+  register_open_file (fp, template);
   return fp;
 }
 
 /* Panic on failing fwrite */
 void
-ck_fwrite(ptr, size, nmemb, stream)
-  const void *ptr;
-  size_t size;
-  size_t nmemb;
-  FILE *stream;
+ck_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
   clearerr(stream);
   if (size && fwrite(ptr, size, nmemb, stream) != nmemb)
-    panic(ngettext("couldn't write %d item to %s: %s",
-		   "couldn't write %d items to %s: %s", nmemb), 
-		nmemb, utils_fp_name(stream), strerror(errno));
+    panic(ngettext("couldn't write %llu item to %s: %s",
+                   "couldn't write %llu items to %s: %s", nmemb),
+          (unsigned long long) nmemb, utils_fp_name(stream),
+          strerror(errno));
 }
 
 /* Panic on failing fread */
 size_t
-ck_fread(ptr, size, nmemb, stream)
-  void *ptr;
-  size_t size;
-  size_t nmemb;
-  FILE *stream;
+ck_fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
   clearerr(stream);
   if (size && (nmemb=fread(ptr, size, nmemb, stream)) <= 0 && ferror(stream))
@@ -247,11 +207,7 @@ ck_fread(ptr, size, nmemb, stream)
 }
 
 size_t
-ck_getdelim(text, buflen, buffer_delimiter, stream)
-  char **text;
-  size_t *buflen;
-  char buffer_delimiter;
-  FILE *stream;
+ck_getdelim(char **text, size_t *buflen, char buffer_delimiter, FILE *stream)
 {
   ssize_t result;
   bool error;
@@ -271,8 +227,7 @@ ck_getdelim(text, buflen, buffer_delimiter, stream)
 
 /* Panic on failing fflush */
 void
-ck_fflush(stream)
-  FILE *stream;
+ck_fflush(FILE *stream)
 {
   if (!fwriting(stream))
     return;
@@ -284,8 +239,7 @@ ck_fflush(stream)
 
 /* Panic on failing fclose */
 void
-ck_fclose(stream)
-  FILE *stream;
+ck_fclose(FILE *stream)
 {
   struct open_file r;
   struct open_file *prev;
@@ -297,14 +251,14 @@ ck_fclose(stream)
   while ( (cur = prev->link) )
     {
       if (!stream || stream == cur->fp)
-	{
-	  do_ck_fclose (cur->fp);
-	  prev->link = cur->link;
-	  free(cur->name);
-	  free(cur);
-	}
+        {
+          do_ck_fclose (cur->fp);
+          prev->link = cur->link;
+          free(cur->name);
+          free(cur);
+        }
       else
-	prev = cur;
+        prev = cur;
     }
 
   open_files = r.link;
@@ -321,8 +275,7 @@ ck_fclose(stream)
 
 /* Close a single file. */
 void
-do_ck_fclose(fp)
-  FILE *fp;
+do_ck_fclose(FILE *fp)
 {
   ck_fflush(fp);
   clearerr(fp);
@@ -369,37 +322,37 @@ follow_symlink(const char *fname)
           buf2 = ck_realloc (buf2, buf_size);
         }
       if (rc < 0)
-	panic (_("couldn't follow symlink %s: %s"), buf, strerror(errno));
+        panic (_("couldn't follow symlink %s: %s"), buf, strerror(errno));
       else
-	buf2 [rc] = '\0';
+        buf2 [rc] = '\0';
 
       if (buf2[0] != '/' && (c = strrchr (buf, '/')) != NULL)
-	{
-	  /* Need to handle relative paths with care.  Reallocate buf1 and
-	     buf2 to be big enough.  */
-	  int len = c - buf + 1;
-	  if (len + rc + 1 > buf_size)
-	    {
-	      buf_size = len + rc + 1;
-	      buf1 = ck_realloc (buf1, buf_size);
-	      buf2 = ck_realloc (buf2, buf_size);
-	    }
+        {
+          /* Need to handle relative paths with care.  Reallocate buf1 and
+             buf2 to be big enough.  */
+          int len = c - buf + 1;
+          if (len + rc + 1 > buf_size)
+            {
+              buf_size = len + rc + 1;
+              buf1 = ck_realloc (buf1, buf_size);
+              buf2 = ck_realloc (buf2, buf_size);
+            }
 
-	  /* Always store the new path in buf1.  */
-	  if (buf != buf1)
+          /* Always store the new path in buf1.  */
+          if (buf != buf1)
             memcpy (buf1, buf, len);
 
           /* Tack the relative symlink at the end of buf1.  */
           memcpy (buf1 + len, buf2, rc + 1);
-	  buf = buf1;
-	}
+          buf = buf1;
+        }
       else
-	{
-	  /* Use buf2 as the buffer, it saves a strcpy if it is not pointing to
-	     another link.  It works for absolute symlinks, and as long as
-	     symlinks do not leave the current directory.  */
-	   buf = buf2;
-	}
+        {
+          /* Use buf2 as the buffer, it saves a strcpy if it is not pointing to
+             another link.  It works for absolute symlinks, and as long as
+             symlinks do not leave the current directory.  */
+           buf = buf2;
+        }
     }
 
   if (rc < 0)
@@ -413,9 +366,7 @@ follow_symlink(const char *fname)
 
 /* Panic on failing rename */
 void
-ck_rename (from, to, unlink_if_fail)
-  const char *from, *to;
-  const char *unlink_if_fail;
+ck_rename (const char *from, const char *to, const char *unlink_if_fail)
 {
   int rd = rename (from, to);
   if (rd != -1)
@@ -427,7 +378,8 @@ ck_rename (from, to, unlink_if_fail)
       errno = 0;
       unlink (unlink_if_fail);
 
-      /* Failure to remove the temporary file is more severe, so trigger it first.  */
+      /* Failure to remove the temporary file is more severe,
+         so trigger it first.  */
       if (errno != 0)
         panic (_("cannot remove %s: %s"), unlink_if_fail, strerror (errno));
 
@@ -442,8 +394,7 @@ ck_rename (from, to, unlink_if_fail)
 
 /* Panic on failing malloc */
 void *
-ck_malloc(size)
-  size_t size;
+ck_malloc(size_t size)
 {
   void *ret = calloc(1, size ? size : 1);
   if (!ret)
@@ -453,9 +404,7 @@ ck_malloc(size)
 
 /* Panic on failing realloc */
 void *
-ck_realloc(ptr, size)
-  void *ptr;
-  size_t size;
+ck_realloc(void *ptr, size_t size)
 {
   void *ret;
 
@@ -474,8 +423,7 @@ ck_realloc(ptr, size)
 
 /* Return a malloc()'d copy of a string */
 char *
-ck_strdup(str)
-  const char *str;
+ck_strdup(const char *str)
 {
   char *ret = MALLOC(strlen(str)+1, char);
   return strcpy(ret, str);
@@ -483,9 +431,7 @@ ck_strdup(str)
 
 /* Return a malloc()'d copy of a block of memory */
 void *
-ck_memdup(buf, len)
-  const void *buf;
-  size_t len;
+ck_memdup(const void *buf, size_t len)
 {
   void *ret = ck_malloc(len);
   return memcpy(ret, buf, len);
@@ -505,7 +451,7 @@ struct buffer
 #define MIN_ALLOCATE 50
 
 struct buffer *
-init_buffer()
+init_buffer(void)
 {
   struct buffer *b = MALLOC(1, struct buffer);
   b->b = MALLOC(MIN_ALLOCATE, char);
@@ -515,24 +461,19 @@ init_buffer()
 }
 
 char *
-get_buffer(b)
-  struct buffer *b;
+get_buffer(struct buffer const *b)
 {
   return b->b;
 }
 
 size_t
-size_buffer(b)
-  struct buffer *b;
+size_buffer(struct buffer const *b)
 {
   return b->length;
 }
 
-static void resize_buffer (struct buffer *b, size_t newlen);
 static void
-resize_buffer(b, newlen)
-  struct buffer *b;
-  size_t newlen;
+resize_buffer(struct buffer *b, size_t newlen)
 {
   char *try = NULL;
   size_t alen = b->allocated;
@@ -552,10 +493,7 @@ resize_buffer(b, newlen)
 }
 
 char *
-add_buffer(b, p, n)
-  struct buffer *b;
-  const char *p;
-  size_t n;
+add_buffer(struct buffer *b, const char *p, size_t n)
 {
   char *result;
   if (b->allocated - b->length < n)
@@ -566,9 +504,7 @@ add_buffer(b, p, n)
 }
 
 char *
-add1_buffer(b, c)
-  struct buffer *b;
-  int c;
+add1_buffer(struct buffer *b, int c)
 {
   /* This special case should be kept cheap;
    *  don't make it just a mere convenience
@@ -580,7 +516,7 @@ add1_buffer(b, c)
     {
       char *result;
       if (b->allocated - b->length < 1)
-	resize_buffer(b, b->length+1);
+        resize_buffer(b, b->length+1);
       result = b->b + b->length++;
       *result = c;
       return result;
@@ -590,8 +526,7 @@ add1_buffer(b, c)
 }
 
 void
-free_buffer(b)
-  struct buffer *b;
+free_buffer(struct buffer *b)
 {
   if (b)
     free(b->b);
