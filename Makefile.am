@@ -1,4 +1,4 @@
-# Copyright (C) 1990-2016 Free Software Foundation, Inc.
+# Copyright (C) 1990-2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,7 +11,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 PACKAGE = sed
 
@@ -38,7 +38,7 @@ noinst_DATA =
 noinst_HEADERS = basicdefs.h
 DISTCLEANFILES =
 
-EXTRA_DIST += BUGS THANKS.in COPYING.DOC \
+EXTRA_DIST += BUGS THANKS.in \
   .version				\
   .mailmap ChangeLog-2014 po/ChangeLog-2014 \
   bootstrap bootstrap.conf build-aux/help2man \
@@ -138,3 +138,9 @@ include $(top_srcdir)/testsuite/local.mk
 distclean-local:
 	test x$(srcdir) = x$(builddir) || rm -f $(dist_man_MANS)
 	rm -f lib/.deps/getfilecon.Po lib/.deps/obstack.Po
+
+# Shortcut targets to make it easier to run (very) expensive tests.
+check-expensive:
+	$(MAKE) check RUN_EXPENSIVE_TESTS=yes
+check-very-expensive:
+	$(MAKE) check-expensive RUN_VERY_EXPENSIVE_TESTS=yes

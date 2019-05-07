@@ -5,8 +5,8 @@
 @end direntry
 
 @clear PERL
-@set SSEDEXT @acronym{GNU} extensions
-@set SSED @acronym{GNU} @command{sed}
+@set SSEDEXT GNU extensions
+@set SSED GNU @command{sed}
 
 @c Ugly hack to enable using new texinfo commands '@codequotebacktick'
 @c and '@codequoteundirected' or define empty fallbacks if they are
@@ -33,3 +33,35 @@
 @end macro
 @end ifcommandnotdefined
 @end ifset
+
+
+@c define variables that will render as characters
+@c on both HTML (with @U{}) and PDF (with greek symbols).
+@c Use with: @value{ucsigma}
+@c
+@c Based on:
+@c https://lists.gnu.org/archive/html/help-texinfo/2012-06/msg00004.html
+@iftex
+@set ucsigma @math{@Sigma{}}
+@end iftex
+@ifnottex
+@set ucsigma @U{03A3}
+@end ifnottex
+
+@iftex
+@set lcsigma @math{@sigma{}}
+@end iftex
+@ifnottex
+@set lcsigma @U{03C3}
+@end ifnottex
+
+@c Unicode Replacement Character (U+FFFD):
+@c no easy/portable tex equivalent, so use another
+@c distinct symbol (which will be rendered very differently
+@c than ascii characters in @examples.
+@iftex
+@set unicodeFFFD @math{@otimes{}}
+@end iftex
+@ifnottex
+@set unicodeFFFD @U{FFFD}
+@end ifnottex

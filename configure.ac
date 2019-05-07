@@ -1,4 +1,4 @@
-# Copyright (C) 1993-2016 Free Software Foundation, Inc.
+# Copyright (C) 1993-2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,7 +11,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 dnl Process this file with -*- autoconf -*- to produce a configure script.
 AC_INIT([GNU sed],
@@ -20,7 +20,7 @@ AC_INIT([GNU sed],
 AC_CONFIG_AUX_DIR(build-aux)
 AC_CONFIG_SRCDIR([sed/sed.c])
 AM_CONFIG_HEADER(config.h:config_h.in)
-AC_PREREQ(2.62)
+AC_PREREQ([2.64])
 AM_INIT_AUTOMAKE([1.11.1 no-dist-gzip dist-xz color-tests parallel-tests
                   subdir-objects])
 AM_SILENT_RULES([yes]) # make --enable-silent-rules the default.
@@ -31,6 +31,13 @@ AM_PROG_CC_C_O
 gl_EARLY
 gl_INIT
 gl_DISABLE_THREADS
+
+# The test suite needs to know if we have a working perl.
+# FIXME: this is suboptimal.  Ideally, we would be able to call gl_PERL
+# with an ACTION-IF-NOT-FOUND argument ...
+cu_have_perl=yes
+case $PERL in *"/missing "*) cu_have_perl=no;; esac
+AM_CONDITIONAL([HAVE_PERL], [test $cu_have_perl = yes])
 
 # gl_GCC_VERSION_IFELSE([major], [minor], [run-if-found], [run-if-not-found])
 # ------------------------------------------------
@@ -123,18 +130,6 @@ if test "x$enable_i18n" = xno; then
   ac_cv_func_wcscoll=no
 fi
 
-AC_ARG_ENABLE(regex-tests,
-[  --enable-regex-tests    enable regex matcher regression tests (default=yes)],
-[if test "x$with_included_regex" = xno; then
-  enable_regex_tests=no
-fi],
-enable_regex_tests=$with_included_regex)
-
-AM_CONDITIONAL(TEST_REGEX, test "x$enable_regex_tests" = xyes)
-if test "x$enable_regex_tests" = xyes; then
-  AC_DEFINE_UNQUOTED([_REGEX_RE_COMP], 1,
-    [Include BSD functions in regex, used by the testsuite])
-fi
 
 # Determine whether we should run UTF-8 tests by checking if cyrillic
 # letters are case-folded properly.  The test for UTF-8 locales (both
@@ -293,6 +288,44 @@ if test "$gl_gcc_warnings" = yes; then
                          [$WARN_CFLAGS], [$nw])
   AC_SUBST([GNULIB_TEST_WARN_CFLAGS])
 fi
+
+AM_CONDITIONAL([CROSS_COMPILING], [test "$cross_compiling" = yes])
+
+# Perl is needed for help2man
+AC_PATH_PROG([PERL], [perl])
+
+# building from tarball?
+built_from_tarball=no
+test -f "$srcdir"/.tarball-version && \
+  ! test -d "$srcdir/.git" && \
+  built_from_tarball=yes
+
+# Can the man page be built?
+# Perl needed for help2man, executing sed needed for 'sed --help'
+can_rebuild_man_page=no
+test -n "$PERL" && \
+  test "$cross_compiling" != yes && \
+  can_rebuild_man_page=yes
+
+# Build the man page when
+# building from git and rebuilding is possible.
+AM_CONDITIONAL([BUILD_MAN_PAGE],
+ [test "$built_from_tarball" = no && \
+    test "$can_rebuild_man_page" = yes])
+
+# Create a stub man page instead of failing when
+# building from git and rebuilding is not possible.
+AM_CONDITIONAL([BUILD_DUMMY_MAN_PAGE],
+ [test "$built_from_tarball" = no && \
+    test "$can_rebuild_man_page" = no])
+
+
+# This is needed when building outside the source dir
+# with --disable-dependency-tracking, see https://bugs.gnu.org/25371
+AS_MKDIR_P([lib])
+AS_MKDIR_P([sed])
+AS_MKDIR_P([doc])
+AS_MKDIR_P([testsuite])
 
 AC_CONFIG_FILES([
   Makefile

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sed 4.2.2.177\n"
 "Report-Msgid-Bugs-To: bug-gnu-utils@gnu.org\n"
-"POT-Creation-Date: 2016-12-30 00:59-0800\n"
+"POT-Creation-Date: 2018-12-20 22:03-0800\n"
 "PO-Revision-Date: 2016-12-06 16:32+0200\n"
 "Last-Translator: Toomas Soome <tsoome@me.com>\n"
 "Language-Team: Estonian <linux-ee@lists.eenet.ee>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "X-Poedit-Language: Estonian\n"
 "X-Poedit-Country: ESTONIA\n"
 
-#: lib/closeout.c:112
+#: lib/closeout.c:122
 msgid "write error"
 msgstr "viga kirjutamisel"
 
@@ -29,107 +29,80 @@ msgstr "viga kirjutamisel"
 msgid "preserving permissions for %s"
 msgstr "säilitan %s õigused"
 
-#: lib/dfa.c:1025 lib/dfa.c:1028 lib/dfa.c:1047 lib/dfa.c:1057 lib/dfa.c:1070
-#: lib/dfa.c:1098 lib/dfa.c:1107 lib/dfa.c:1110 lib/dfa.c:1115 lib/dfa.c:1137
-#: lib/dfa.c:1140
+#: lib/dfa.c:970
 msgid "unbalanced ["
 msgstr "balanseerimata ["
 
-#: lib/dfa.c:1083
+#: lib/dfa.c:1091
 msgid "invalid character class"
 msgstr "vigane sümbolite klass"
 
-#: lib/dfa.c:1206
+#: lib/dfa.c:1217
 msgid "character class syntax is [[:space:]], not [:space:]"
 msgstr "sümbolite klassi süntaks on [[:space:]], mitte [:space:]"
 
-#: lib/dfa.c:1275
+#: lib/dfa.c:1284
 msgid "unfinished \\ escape"
 msgstr "lõpetamata \\ paojada"
 
-#: lib/dfa.c:1436
+#: lib/dfa.c:1445
 msgid "invalid content of \\{\\}"
 msgstr "vigane \\{\\} sisu"
 
-#: lib/dfa.c:1439
+#: lib/dfa.c:1448
 msgid "regular expression too big"
 msgstr "regulaaravaldis on liiga suur"
 
-#: lib/dfa.c:1853
+#: lib/dfa.c:1863
 msgid "unbalanced ("
 msgstr "balanseerimata ("
 
-#: lib/dfa.c:1980
+#: lib/dfa.c:1981
 msgid "no syntax specified"
 msgstr "süntaksi pole antud"
 
-#: lib/dfa.c:1988
+#: lib/dfa.c:1992
 msgid "unbalanced )"
 msgstr "balanseerimata )"
 
-#: lib/error.c:191
+#: lib/error.c:195
 msgid "Unknown system error"
 msgstr "Tundmatu süsteemi viga"
 
-#: lib/getopt.c:575 lib/getopt.c:604
-#, c-format
-msgid "%s: option '%s' is ambiguous; possibilities:"
-msgstr "%s: võti '%s' on mitmetähenduslik; variandid:"
-
-#: lib/getopt.c:619
-#, c-format
-msgid "%s: option '%s' is ambiguous\n"
+#: lib/getopt.c:278
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
 msgstr "%s: võti '%s' on mitmetähenduslik\n"
 
-#: lib/getopt.c:654 lib/getopt.c:658
-#, c-format
-msgid "%s: option '--%s' doesn't allow an argument\n"
-msgstr "%s: võti '--%s' ei luba argumenti\n"
+#: lib/getopt.c:284
+#, fuzzy, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: võti '%s' on mitmetähenduslik; variandid:"
 
-#: lib/getopt.c:667 lib/getopt.c:672
-#, c-format
-msgid "%s: option '%c%s' doesn't allow an argument\n"
-msgstr "%s: võti '%c%s' ei luba argumenti\n"
-
-#: lib/getopt.c:715 lib/getopt.c:734
-#, c-format
-msgid "%s: option '--%s' requires an argument\n"
-msgstr "%s: võti '--%s' nõuab argumenti\n"
-
-#: lib/getopt.c:772 lib/getopt.c:775
-#, c-format
-msgid "%s: unrecognized option '--%s'\n"
-msgstr "%s: tundmatu võti '--%s'\n"
-
-#: lib/getopt.c:783 lib/getopt.c:786
-#, c-format
-msgid "%s: unrecognized option '%c%s'\n"
+#: lib/getopt.c:319
+#, fuzzy, c-format
+msgid "%s: unrecognized option '%s%s'\n"
 msgstr "%s: tundmatu võti '%c%s'\n"
 
-#: lib/getopt.c:835 lib/getopt.c:838
+#: lib/getopt.c:345
+#, fuzzy, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: võti '%c%s' ei luba argumenti\n"
+
+#: lib/getopt.c:360
+#, fuzzy, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: võti '--%s' nõuab argumenti\n"
+
+#: lib/getopt.c:621
 #, c-format
 msgid "%s: invalid option -- '%c'\n"
 msgstr "%s: vigane võti -- '%c'\n"
 
-#: lib/getopt.c:891 lib/getopt.c:908 lib/getopt.c:1118 lib/getopt.c:1136
+#: lib/getopt.c:636 lib/getopt.c:682
 #, c-format
 msgid "%s: option requires an argument -- '%c'\n"
 msgstr "%s: võti nõuab argumenti -- '%c'\n"
-
-#: lib/getopt.c:964 lib/getopt.c:980
-#, c-format
-msgid "%s: option '-W %s' is ambiguous\n"
-msgstr "%s: võti '-W %s' on mitmetähenduslik\n"
-
-#: lib/getopt.c:1004 lib/getopt.c:1022
-#, c-format
-msgid "%s: option '-W %s' doesn't allow an argument\n"
-msgstr "%s: võti '-W %s' ei luba argumenti\n"
-
-#: lib/getopt.c:1043 lib/getopt.c:1061
-#, c-format
-msgid "%s: option '-W %s' requires an argument\n"
-msgstr "%s: võti '-W %s' nõuab argumenti\n"
 
 #: lib/obstack.c:338 lib/obstack.c:340 lib/xalloc-die.c:34
 msgid "memory exhausted"
@@ -154,13 +127,13 @@ msgstr "mälu on otsas"
 #. for your locale.
 #.
 #. If you don't know what to put here, please see
-#. <http://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
 #. and use glyphs suitable for your language.
-#: lib/quotearg.c:354
+#: lib/quotearg.c:362
 msgid "`"
 msgstr "`"
 
-#: lib/quotearg.c:355
+#: lib/quotearg.c:363
 msgid "'"
 msgstr "'"
 
@@ -232,7 +205,7 @@ msgstr "Regulaaravaldis on liiga suur"
 msgid "Unmatched ) or \\)"
 msgstr "Puudub ) või \\)"
 
-#: lib/regcomp.c:687
+#: lib/regcomp.c:688
 msgid "No previous regular expression"
 msgstr "Eelmist regulaaravaldist pole"
 
@@ -241,12 +214,12 @@ msgstr "Eelmist regulaaravaldist pole"
 msgid "setting permissions for %s"
 msgstr "sean %s õigused"
 
-#: lib/version-etc.c:74
+#: lib/version-etc.c:73
 #, c-format
 msgid "Packaged by %s (%s)\n"
 msgstr "Paketeerinud %s (%s)\n"
 
-#: lib/version-etc.c:77
+#: lib/version-etc.c:76
 #, c-format
 msgid "Packaged by %s\n"
 msgstr "Paketeerinud %s\n"
@@ -254,14 +227,15 @@ msgstr "Paketeerinud %s\n"
 #. TRANSLATORS: Translate "(C)" to the copyright symbol
 #. (C-in-a-circle), if this symbol is available in the user's
 #. locale.  Otherwise, do not translate "(C)"; leave it as-is.
-#: lib/version-etc.c:84
+#: lib/version-etc.c:83
 msgid "(C)"
 msgstr "©"
 
-#: lib/version-etc.c:86
+#: lib/version-etc.c:85
+#, fuzzy
 msgid ""
 "\n"
-"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl."
+"License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl."
 "html>.\n"
 "This is free software: you are free to change and redistribute it.\n"
 "There is NO WARRANTY, to the extent permitted by law.\n"
@@ -406,12 +380,13 @@ msgid "%s home page: <%s>\n"
 msgstr "%s koduleht: <%s>\n"
 
 #: lib/version-etc.c:253
-#, c-format
-msgid "%s home page: <http://www.gnu.org/software/%s/>\n"
+#, fuzzy, c-format
+msgid "%s home page: <https://www.gnu.org/software/%s/>\n"
 msgstr "%s koduleht: <http://www.gnu.org/software/%s/>\n"
 
 #: lib/version-etc.c:256
-msgid "General help using GNU software: <http://www.gnu.org/gethelp/>\n"
+#, fuzzy
+msgid "General help using GNU software: <https://www.gnu.org/gethelp/>\n"
 msgstr "Üldine abi GNU tarkvara kasutamiseks: <http://www.gnu.org/gethelp/>\n"
 
 #: sed/compile.c:146
@@ -462,186 +437,194 @@ msgstr "käsk puudub"
 msgid "command only uses one address"
 msgstr "käsk kasutab vaid üht aadressi"
 
-#: sed/compile.c:164
+#: sed/compile.c:165
 msgid "unterminated address regex"
 msgstr "lõpetamata aadressi avaldis"
 
-#: sed/compile.c:165
+#: sed/compile.c:166
 msgid "unterminated `s' command"
 msgstr "lõpetamata `s' käsk"
 
-#: sed/compile.c:166
+#: sed/compile.c:167
 msgid "unterminated `y' command"
 msgstr "lõpetamata `y' käsk"
 
-#: sed/compile.c:167
+#: sed/compile.c:168
 msgid "unknown option to `s'"
 msgstr "tundmatu võti `s' käsule"
 
-#: sed/compile.c:169
+#: sed/compile.c:170
 msgid "multiple `p' options to `s' command"
 msgstr "korduv `p' võti `s' käsus"
 
-#: sed/compile.c:171
+#: sed/compile.c:172
 msgid "multiple `g' options to `s' command"
 msgstr "korduv `g' võti `s' käsus"
 
-#: sed/compile.c:173
+#: sed/compile.c:174
 msgid "multiple number options to `s' command"
 msgstr "korduvad numbrivõtmed `s' käsus"
 
-#: sed/compile.c:175
+#: sed/compile.c:176
 msgid "number option to `s' command may not be zero"
 msgstr "numbrivõti `s' käsus ei või olla null"
 
-#: sed/compile.c:177
+#: sed/compile.c:178
 msgid "strings for `y' command are different lengths"
 msgstr "sõned käsus `y' on erineva pikkusega"
 
-#: sed/compile.c:179
+#: sed/compile.c:180
 msgid "delimiter character is not a single-byte character"
 msgstr "eraldav sübol ei ole ühe-baidiline sümbol"
 
-#: sed/compile.c:181
+#: sed/compile.c:182
 msgid "expected newer version of sed"
 msgstr "oodati sedi uuemat versiooni"
 
-#: sed/compile.c:183
+#: sed/compile.c:184
 msgid "invalid usage of line address 0"
 msgstr "vigane rea aadressi 0 kasutamine"
 
-#: sed/compile.c:184
+#: sed/compile.c:185
 #, c-format
 msgid "unknown command: `%c'"
 msgstr "tundmatu käsk: `%c'"
 
-#: sed/compile.c:186
+#: sed/compile.c:187
 msgid "incomplete command"
 msgstr "poolik käsk"
 
-#: sed/compile.c:188
+#: sed/compile.c:189
 msgid "\":\" lacks a label"
 msgstr "\":\" märgend puudub"
 
-#: sed/compile.c:190
+#: sed/compile.c:191
 msgid "recursive escaping after \\c not allowed"
 msgstr "rekursiivne paojada peale \\c ei ole lubatud"
 
-#: sed/compile.c:213
+#: sed/compile.c:193
+msgid "e/r/w commands disabled in sandbox mode"
+msgstr ""
+
+#: sed/compile.c:215
 #, c-format
 msgid "%s: file %s line %lu: %s\n"
 msgstr "%s: fail %s rida %lu: %s\n"
 
-#: sed/compile.c:216
+#: sed/compile.c:218
 #, c-format
 msgid "%s: -e expression #%lu, char %lu: %s\n"
 msgstr "%s: -e avaldis #%lu, sümbol %lu: %s\n"
 
-#: sed/compile.c:1639
+#: sed/compile.c:1607
 #, c-format
 msgid "can't find label for jump to `%s'"
 msgstr "ei leia märgendit, et hüpata kohale `%s'"
 
-#: sed/execute.c:264 sed/execute.c:281
+#: sed/execute.c:253 sed/execute.c:270
 #, c-format
 msgid "case conversion produced an invalid character"
 msgstr "Sümboli suuruse teisendus tekitas vigase sümboli"
 
-#: sed/execute.c:575
+#: sed/execute.c:561
 #, c-format
 msgid "%s: can't read %s: %s\n"
 msgstr "%s: ei saa lugeda %s: %s\n"
 
-#: sed/execute.c:600
+#: sed/execute.c:587
 #, c-format
 msgid "couldn't edit %s: is a terminal"
 msgstr "%s ei saa toimetada: see on terminal"
 
-#: sed/execute.c:605
+#: sed/execute.c:592
 #, c-format
 msgid "couldn't edit %s: not a regular file"
 msgstr "%s ei saa toimetada: see ei ole tavaline fail"
 
-#: sed/execute.c:616
+#: sed/execute.c:603
 #, c-format
 msgid "%s: warning: failed to set default file creation context to %s: %s"
 msgstr ""
 "%s: hoiatus: faili loomise vaikimisi konteksti seadmine ebaõnnestus %s: %s"
 
-#: sed/execute.c:624
+#: sed/execute.c:611
 #, c-format
 msgid "%s: warning: failed to get security context of %s: %s"
 msgstr "%s: hoiatus: %s turvakonteksti lugemine ebaõnnestus: %s"
 
-#: sed/execute.c:643 sed/utils.c:178
+#: sed/execute.c:630 sed/utils.c:188
 #, c-format
 msgid "couldn't open temporary file %s: %s"
 msgstr "ajutist faili %s ei saa avada: %s"
 
-#: sed/execute.c:1158 sed/execute.c:1368
+#: sed/execute.c:1167 sed/execute.c:1366
 msgid "error in subprocess"
 msgstr "viga alamprotsessis"
 
-#: sed/execute.c:1160
+#: sed/execute.c:1169
 msgid "option `e' not supported"
 msgstr "võtit `e' ei toetata"
 
-#: sed/execute.c:1349
+#: sed/execute.c:1347
 msgid "`e' command not supported"
 msgstr "käsku `e' ei toetata"
 
-#: sed/execute.c:1675
+#: sed/execute.c:1662
 msgid "no input files"
 msgstr "sisendfaile pole"
 
-#: sed/regexp.c:38
+#: sed/regexp.c:40
 msgid "no previous regular expression"
 msgstr "eelmist regulaaravaldist pole"
 
-#: sed/regexp.c:138
+#: sed/regexp.c:125
 #, c-format
 msgid "invalid reference \\%d on `s' command's RHS"
 msgstr "vigane viide \\%d käsu `s' paremas pooles"
 
-#: sed/sed.c:35
+#: sed/regexp.c:196
+msgid "regex input buffer length larger than INT_MAX"
+msgstr ""
+
+#: sed/sed.c:36
 msgid "Jay Fenlason"
 msgstr "Jay Fenlason"
 
-#: sed/sed.c:36
+#: sed/sed.c:37
 msgid "Tom Lord"
 msgstr "Tom Lord"
 
-#: sed/sed.c:37
+#: sed/sed.c:38
 msgid "Ken Pizzini"
 msgstr "Ken Pizzini"
 
-#: sed/sed.c:38
+#: sed/sed.c:39
 msgid "Paolo Bonzini"
 msgstr "Paolo Bonzini"
 
-#: sed/sed.c:113
-#, c-format
+#: sed/sed.c:40
+msgid "Jim Meyering"
+msgstr ""
+
+#: sed/sed.c:41
+msgid "Assaf Gordon"
+msgstr ""
+
+#: sed/sed.c:124
+#, fuzzy, c-format
 msgid ""
-"GNU sed home page: <http://www.gnu.org/software/sed/>.\n"
-"General help using GNU software: <http://www.gnu.org/gethelp/>.\n"
+"GNU sed home page: <https://www.gnu.org/software/sed/>.\n"
+"General help using GNU software: <https://www.gnu.org/gethelp/>.\n"
 msgstr ""
 "GNU sed kodulehekülg: <http://www.gnu.org/software/sed/>.\n"
 "Üldine abi GNU tarkvara kasutamiseks: <http://www.gnu.org/gethelp/>.\n"
 
-#: sed/sed.c:120
+#: sed/sed.c:130
 #, c-format
 msgid "E-mail bug reports to: <%s>.\n"
 msgstr "Mailige veateated aadressil: <%s>.\n"
 
-#: sed/sed.c:129
-msgid ""
-"  -R, --regexp-perl\n"
-"                 use Perl 5's regular expressions syntax in the script.\n"
-msgstr ""
-"  -R, --regexp-perl\n"
-"                 kasuta skriptis Perl 5 regulaaravaldiste süntaksit.\n"
-
-#: sed/sed.c:134
+#: sed/sed.c:138
 #, c-format
 msgid ""
 "Usage: %s [OPTION]... {script-only-if-no-other-script} [input-file]...\n"
@@ -651,7 +634,7 @@ msgstr ""
 "fail]...\n"
 "\n"
 
-#: sed/sed.c:138
+#: sed/sed.c:142
 #, c-format
 msgid ""
 "  -n, --quiet, --silent\n"
@@ -660,7 +643,16 @@ msgstr ""
 "  -n, --quiet, --silent\n"
 "                 keela mustriruumi automaatne väljastamine\n"
 
-#: sed/sed.c:140
+#: sed/sed.c:144
+#, fuzzy, c-format
+msgid ""
+"      --debug\n"
+"                 annotate program execution\n"
+msgstr ""
+"  --posix\n"
+"                 blokeeri kõik GNU laiendused.\n"
+
+#: sed/sed.c:146
 #, c-format
 msgid ""
 "  -e script, --expression=script\n"
@@ -669,7 +661,7 @@ msgstr ""
 "  -e skript, --expression=skript\n"
 "                 lisa täidetavate käskluste skript\n"
 
-#: sed/sed.c:142
+#: sed/sed.c:148
 #, c-format
 msgid ""
 "  -f script-file, --file=script-file\n"
@@ -679,7 +671,7 @@ msgstr ""
 "  -f skripti-fail, --file=skripti-fail\n"
 "                 lisa skripti-faili sisu täidetavate käskluste hulka\n"
 
-#: sed/sed.c:146
+#: sed/sed.c:152
 #, c-format
 msgid ""
 "  --follow-symlinks\n"
@@ -688,7 +680,7 @@ msgstr ""
 "  --follow-symlinks\n"
 "                 järgi nimeviiteid\n"
 
-#: sed/sed.c:149
+#: sed/sed.c:155
 #, c-format
 msgid ""
 "  -i[SUFFIX], --in-place[=SUFFIX]\n"
@@ -697,7 +689,7 @@ msgstr ""
 "  -i[SUFIKS], --in-place[=SUFIKS]\n"
 "                 toimeta faile (kui kasutati sufiksit, loob ka varukoopia)\n"
 
-#: sed/sed.c:153
+#: sed/sed.c:158
 #, c-format
 msgid ""
 "  -b, --binary\n"
@@ -707,7 +699,7 @@ msgstr ""
 "  -b, --binary\n"
 "                 ava failid binaarmoodis (CR+LF ei käsitleta eriliselt)\n"
 
-#: sed/sed.c:157
+#: sed/sed.c:162
 #, c-format
 msgid ""
 "  -l N, --line-length=N\n"
@@ -716,7 +708,7 @@ msgstr ""
 "  -l N, --line-length=N\n"
 "                 määra `l' käsule soovitatav rea pikkus\n"
 
-#: sed/sed.c:159
+#: sed/sed.c:164
 #, c-format
 msgid ""
 "  --posix\n"
@@ -725,7 +717,7 @@ msgstr ""
 "  --posix\n"
 "                 blokeeri kõik GNU laiendused.\n"
 
-#: sed/sed.c:161
+#: sed/sed.c:166
 #, c-format
 msgid ""
 "  -E, -r, --regexp-extended\n"
@@ -736,7 +728,7 @@ msgstr ""
 "                 kasuta skriptis laiendatud regulaaravaldiste süntaksit\n"
 "                 (ühilduvuse jaoks kasutage POSIX -E).\n"
 
-#: sed/sed.c:167
+#: sed/sed.c:169
 #, c-format
 msgid ""
 "  -s, --separate\n"
@@ -746,16 +738,16 @@ msgstr ""
 "  -s, --separate\n"
 "                 käsitle faile ükshaaval, mitte ühe jätkuva voona.\n"
 
-#: sed/sed.c:170
-#, c-format
+#: sed/sed.c:172
+#, fuzzy, c-format
 msgid ""
 "      --sandbox\n"
-"                 operate in sandbox mode.\n"
+"                 operate in sandbox mode (disable e/r/w commands).\n"
 msgstr ""
 "      --sandbox\n"
 "                 opereeri liivakasti moodis.\n"
 
-#: sed/sed.c:172
+#: sed/sed.c:174
 #, c-format
 msgid ""
 "  -u, --unbuffered\n"
@@ -767,7 +759,7 @@ msgstr ""
 "                 loe sisendfailist minimaalne kogus andmeid ja tühjenda\n"
 "                 väljundpuhvreid sagedamini\n"
 
-#: sed/sed.c:175
+#: sed/sed.c:177
 #, c-format
 msgid ""
 "  -z, --null-data\n"
@@ -776,17 +768,17 @@ msgstr ""
 "  -z, --null-data\n"
 "                 eralda read sümboliga NUL\n"
 
-#: sed/sed.c:177
+#: sed/sed.c:179
 #, c-format
 msgid "      --help     display this help and exit\n"
 msgstr "      --help     väljast see abiinfo ja lõpeta töö\n"
 
-#: sed/sed.c:178
+#: sed/sed.c:180
 #, c-format
 msgid "      --version  output version information and exit\n"
 msgstr "      --version  väljasta versiooniinfo ja lõpeta töö\n"
 
-#: sed/sed.c:179
+#: sed/sed.c:181
 #, c-format
 msgid ""
 "\n"
@@ -803,44 +795,79 @@ msgstr ""
 "sisendfailide nimed; kui sisendfaile ei antud, loetakse standardsisendit.\n"
 "\n"
 
-#: sed/utils.c:73 sed/utils.c:384
+#: sed/sed.c:373
+msgid "failed to set binary mode on STDIN"
+msgstr ""
+
+#: sed/sed.c:375
+msgid "failed to set binary mode on STDOUT"
+msgstr ""
+
+#: sed/utils.c:77 sed/utils.c:395
 #, c-format
 msgid "cannot remove %s: %s"
 msgstr "%s ei saa eemaldada: %s"
 
-#: sed/utils.c:136
+#: sed/utils.c:146
 #, c-format
 msgid "couldn't open file %s: %s"
 msgstr "faili %s ei saa avada: %s"
 
-#: sed/utils.c:155
+#: sed/utils.c:165
 #, c-format
 msgid "couldn't attach to %s: %s"
 msgstr "%s külge haakimine ebaõnnestus: %s"
 
 #: sed/utils.c:192
 #, c-format
+msgid "failed to set binary mode on '%s'"
+msgstr ""
+
+#: sed/utils.c:207
+#, c-format
 msgid "couldn't write %llu item to %s: %s"
 msgid_plural "couldn't write %llu items to %s: %s"
 msgstr[0] "%llu elemendi faili %s kirjutamine ebaõnnestus: %s"
 msgstr[1] "%llu elemendi faili %s kirjutamine ebaõnnestus: %s"
 
-#: sed/utils.c:204 sed/utils.c:223
+#: sed/utils.c:219 sed/utils.c:238
 #, c-format
 msgid "read error on %s: %s"
 msgstr "lugemisviga %s: %s"
 
-#: sed/utils.c:325
+#: sed/utils.c:336
 #, c-format
 msgid "couldn't follow symlink %s: %s"
 msgstr "nimeviidet %s ei saa järgida: %s"
 
-#: sed/utils.c:359
+#: sed/utils.c:370
 #, c-format
 msgid "cannot stat %s: %s"
 msgstr "stat %s ei saa teha: %s"
 
-#: sed/utils.c:389
+#: sed/utils.c:400
 #, c-format
 msgid "cannot rename %s: %s"
 msgstr "%s ei saa ümber nimetada: %s"
+
+#~ msgid ""
+#~ "  -R, --regexp-perl\n"
+#~ "                 use Perl 5's regular expressions syntax in the script.\n"
+#~ msgstr ""
+#~ "  -R, --regexp-perl\n"
+#~ "                 kasuta skriptis Perl 5 regulaaravaldiste süntaksit.\n"
+
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s: võti '--%s' ei luba argumenti\n"
+
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s: tundmatu võti '--%s'\n"
+
+#~ msgid "%s: option '-W %s' is ambiguous\n"
+#~ msgstr "%s: võti '-W %s' on mitmetähenduslik\n"
+
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: võti '-W %s' ei luba argumenti\n"
+
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s: võti '-W %s' nõuab argumenti\n"

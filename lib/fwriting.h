@@ -1,5 +1,5 @@
 /* Retrieve information about a FILE stream.
-   Copyright (C) 2007, 2009-2016 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -33,7 +33,7 @@
 
    STREAM must not be wide-character oriented.  */
 
-#if HAVE___FWRITING /* glibc >= 2.2, Solaris >= 7, musl libc */
+#if HAVE___FWRITING /* glibc >= 2.2, Solaris >= 7, Android API >= 29, musl libc */
 
 # include <stdio_ext.h>
 # define fwriting(stream) (__fwriting (stream) != 0)

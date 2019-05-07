@@ -1,7 +1,7 @@
 #!/bin/sh
 # Test --sandbox mode
 
-# Copyright (C) 2016 Free Software Foundation, Inc.
+# Copyright (C) 2016-2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 . "${srcdir=.}/testsuite/init.sh"; path_prepend_ ./sed
 print_ver_ sed
 
@@ -26,8 +26,6 @@ for i in 1 6 14 ; do
   err="sed: -e expression #1, char $i: e/r/w commands disabled in sandbox mode"
   echo "$err" > exp-err$i || framework_failure_
 done
-
-fail=0
 
 # read command - without sandbox
 printf "a\nb\n" > exp || framework_failure_

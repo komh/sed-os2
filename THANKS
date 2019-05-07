@@ -4,16 +4,21 @@ if you'd rather not be listed, or if you'd prefer a different address
 be used, please send a note to the bug-report mailing list (as seen at
 end of e.g., sed --help).
 
+0xddaa                              0xddaa@gmail.com
 Akim Demaille                       akim@epita.fr
 Alan Modra                          alan@spri.levels.unisa.edu.au
+Alexandre Jasmin                    alexandre.jasmin@gmail.com
 Andreas Schwab                      schwab@issan.informatik.uni-dortmund.de
 Andrew Herbert                      andrew@werple.apana.org.au
 Arnold Robbins                      arnold@skeeve.com
 Assaf Gordon                        assafgordon@gmail.com
 Bake Timmons                        b3timmons@speedymail.org
+Bernhard Voelker                    mail@bernhard-voelker.de
+Bjarni Ingi Gislason                bjarniig@rhi.hi.is
 Bruno Haible                        haible@ilog.fr
 Chip Salzenberg                     chip@fin.uucp
 Chris Weber                         weber@bucknell.edu
+Clint Adams                         clint@debian.org
 Corinna Vinschen                    vinschen@redhat.com
 Daniel R. Grayson                   dan@math.uiuc.edu
 David A. Wheeler                    dwheeler@dwheeler.com
@@ -32,6 +37,8 @@ Gaumond Pierre                      gaumondp@ERE.UMontreal.CA
 Greg Ubben                          gsu@romulus.ncsc.mil
 Isamu Hasegawa                      isamu@yamato.ibm.com
 Jakub Jelinek                       jakub@redhat.com
+Jakub Martisko                      jamartis@redhat.com
+Jannick                             thirdedition@gmx.net
 Jari Aalto                          jari.aalto@cante.net
 Jason Molenda                       crash@cygnus.com
 Jim Hill                            gjthill@gmail.com
@@ -41,12 +48,14 @@ J.T. Conklin                        jtc@gain.com
 Karl Berry                          karl@freefriends.org
 Karl Heuer                          kwzh@gnu.org
 Kaveh R. Ghazi                      ghazi@caip.rutgers.edu
+Kent Fredric                        kentnl@gentoo.org
 Kevin Buettner                      kev@cujo.geg.mot.com
 Laurent Vogel                       lvl@club-internet.fr
 Maciej W. Rozycki                   macro@linux-mips.org
 Mark Kettenis                       kettenis@phys.uva.nl
 Michael De La Rue                   delarue@NTCCSC01WA.ntc.nokia.com
 Michel de Ruiter                    mdruiter@cs.vu.nl
+Mike Frysinger                      vapier@chromium.org
 Mike Frysinger                      vapier@gentoo.org
 Norihiro Tanaka                     noritnk@kcn.ne.jp
 Pádraig Brady                       P@draigBrady.com
@@ -64,11 +73,13 @@ Stepan Kasal                        kasal@ucw.cz
 Stephen Davis                       stephend@ksr.com
 Steve Ingram                        si@maps-r-us.com
 Tapani Tarvainen                    tarvaine@tukki.jyu.fi
+Thorsten Heymann                    hek2mgl@metashock.net
 Timothy Baker                       timothypaulbaker@gmail.com
 Timothy J Luoma                     luomat@peak.org
 Tom R.Hageman                       tom@basil.icce.rug.nl
 Tristan Verniquet                   tverniquet@gmail.com
 Ulrich Drepper                      drepper@redhat.com
+Vagelis Prokopiou                   drz4007@gmail.com
 Vincenzo Romano                     vincenzo.romano@notorand.it
 Vladimir Marek                      vladimir.marek@sun.com
 Vladimir Volovich                   vvv@vvv.vsu.ru

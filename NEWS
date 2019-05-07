@@ -1,5 +1,87 @@
 GNU sed NEWS                                    -*- outline -*-
 
+* Noteworthy changes in release 4.7 (2018-12-20) [stable]
+
+** Bug fixes
+
+  Some uses of \b in the C locale and with the DFA matcher would fail, e.g.,
+  the following would mistakenly print "123-x" instead of "123":
+    echo 123-x|LC_ALL=C sed 's/.\bx//'
+  Using a multibyte locale or certain regexp constructs (some ranges,
+  backreferences) would avoid the bug.  [bug introduced in sed 4.6]
+
+
+* Noteworthy changes in release 4.6 (2018-12-19) [stable]
+
+** Improvements
+
+  sed now prints a clear error message when r/R/w/W (and s///w) commands
+  are missing a filename. Previously, w/W commands would fail with confusing
+  error message, while r/R would be a silent no-op.
+
+  sed now uses fully-buffered output (instead of line-buffered) when
+  writing to files. This should noticeably improve performance of "sed -i"
+  and other write commands.
+  Buffering can be disabled (as before) with "sed -u".
+
+  sed in non-cygwin windows environments (e.g. mingw) now properly handles
+  '\n' newlines in -b/--binary mode.
+
+** Bug fixes
+
+  sed no longer accesses invalid memory (heap overflow) when given invalid
+  backreferences in 's' command [bug#32082, present at least since sed-4.0.6].
+
+  sed no longer adds extraneous NUL when given s/$//n command.
+  [related to bug#32271, present since sed-4.0.7]
+
+  sed no longer accesses invalid memory (heap overflow) with s/$//n regexes.
+  [bug#32271, present since sed-4.3].
+
+** New Features
+
+  New option, --debug: print the input sed script in canonical form
+  and annotate program execution.
+
+
+* Noteworthy changes in release 4.5 (2018-03-31) [stable]
+
+** Bug fixes
+
+  sed now fails when matching very long input lines (>2GB).
+  Before, sed would silently ignore the regex without indicating an
+  error. [Bug present at least since sed-3.02]
+
+  sed no longer rejects comments and closing braces after y/// commands.
+  [Bug existed at least since sed-3.02]
+
+  sed -E --posix no longer ignores special meaning of '+','?','|' .
+  [Bug introduced in the original implementation of --posix option in
+  v4.1a-5-gba68fb4]
+
+  sed -i now creates selinux context based on the context of the symlink
+  instead of the symlink target. [Bug present since at least sed-4.2]
+  sed -i --follow-symlinks remains unchanged.
+
+  sed now treats the sequence '\x5c' (ASCII 92, backslash) as literal
+  backslash character, not as an escape prefix character.
+  [Bug present since sed-3.02.80]
+  Old behavior:
+     $ echo z | sed -E 's/(z)/\x5c1/' # identical to 's/(z)/\1/'
+     z
+  New behavior:
+     $ echo z | sed -E 's/(z)/\x5c1/'
+     \1
+
+
+* Noteworthy changes in release 4.4 (2017-02-03) [stable]
+
+** Bug fixes
+
+  sed could segfault when invoked with specific combination of newlines
+  in the input and regex pattern. [Bug introduced in sed-4.3]
+
+
 * Noteworthy changes in release 4.3 (2016-12-30) [stable]
 
 ** Improvements
@@ -12,7 +94,7 @@ GNU sed NEWS                                    -*- outline -*-
 ** Bug fixes
 
   sed no longer mishandles anchors ^/$ in multiline regex (s///mg)
-  with -z option (NUL terminated lines). [Bug introducted in sed-4.2.2
+  with -z option (NUL terminated lines). [Bug introduced in sed-4.2.2
   with the initial implementation of -z]
 
   sed no longer accepts a ":" command without a label; before, it would

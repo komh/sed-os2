@@ -1,5 +1,5 @@
 /*  GNU SED, a batch stream editor.
-    Copyright (C) 1998-2016 Free Software Foundation, Inc.
+    Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -12,8 +12,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
+    along with this program; If not, see <https://www.gnu.org/licenses/>. */
 
 #ifndef BASICDEFS_H
 #define BASICDEFS_H
@@ -31,14 +30,19 @@
 /* type countT is used to keep track of line numbers, etc. */
 typedef unsigned long countT;
 
+#include "xalloc.h"
+
 /* some basic definitions to avoid undue promulgating of  ugliness */
-#define MALLOC(n,t)	 ((t *)ck_malloc((n)*sizeof(t)))
-#define REALLOC(x,n,t)	 ((t *)ck_realloc((void *)(x),(n)*sizeof(t)))
-#define MEMDUP(x,n,t)	 ((t *)ck_memdup((void *)(x),(n)*sizeof(t)))
+#define REALLOC(x,n,t)	 ((t *)xnrealloc((void *)(x),(n),sizeof(t)))
+#define MEMDUP(x,n,t)	 ((t *)xmemdup((x),(n)*sizeof(t)))
 #define OB_MALLOC(o,n,t) ((t *)(void *)obstack_alloc(o,(n)*sizeof(t)))
 
-#define obstack_chunk_alloc  ck_malloc
+#define obstack_chunk_alloc  xzalloc
 #define obstack_chunk_free   free
+
+#define STREQ(a, b) (strcmp (a, b) == 0)
+#define STREQ_LEN(a, b, n) (strncmp (a, b, n) == 0)
+#define STRPREFIX(a, b) (strncmp (a, b, strlen (b)) == 0)
 
 /* MAX_PATH is not defined in some platforms, most notably GNU/Hurd.
    In that case we define it here to some constant.  Note however that
@@ -89,7 +93,7 @@ typedef unsigned long countT;
 #ifndef initialize_main
 # ifdef __EMX__
 #  define initialize_main(argcp, argvp) \
-  { _response(argcp, argvp); _wildcard(argcp, argvp); }
+  { _response (argcp, argvp); _wildcard (argcp, argvp); }
 # else /* NOT __EMX__ */
 #  define initialize_main(argcp, argvp)
 # endif

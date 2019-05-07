@@ -1,5 +1,5 @@
 /*  GNU SED, a batch stream editor.
-    Copyright (C) 1989-2016 Free Software Foundation, Inc.
+    Copyright (C) 1989-2018 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -12,8 +12,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
+    along with this program; If not, see <https://www.gnu.org/licenses/>. */
 
 #include <config.h>
 #include "basicdefs.h"
@@ -28,7 +27,7 @@
 /* Struct vector is used to describe a compiled sed program. */
 struct vector {
   struct sed_cmd *v;	/* a dynamically allocated array */
-  size_t v_allocated;	/* ... number slots allocated */
+  size_t v_allocated;	/* ... number of slots allocated */
   size_t v_length;	/* ... number of slots in use */
 };
 
@@ -126,18 +125,11 @@ struct subst {
   unsigned print : 2;	/* 'p' option given (before/after eval) */
   unsigned eval : 1;	/* 'e' option given */
   unsigned max_id : 4;  /* maximum backreference on the RHS */
+#ifdef lint
+  char* replacement_buffer;
+#endif
 };
 
-#ifdef REG_PERL
-/* This is the structure we store register match data in.  See
-   regex.texinfo for a full description of what registers match.  */
-struct re_registers
-{
-  unsigned num_regs;
-  regoff_t *start;
-  regoff_t *end;
-};
-#endif
 
 
 
@@ -174,32 +166,42 @@ struct sed_cmd {
     /* This is used for the w command. */
     struct output *outf;
 
-    /* This is used for the R command. */
-    FILE *fp;
+    /* This is used for the R command.
+       (despite the struct name, it is used for both in and out files). */
+    struct output *inf;
 
     /* This is used for the y command. */
     unsigned char *translate;
     char **translatemb;
+
+    /* This is used for the ':' command (debug only).  */
+    char* label_name;
   } x;
 };
 
 
-
 _Noreturn void bad_prog (const char *why);
 size_t normalize_text (char *text, size_t len, enum text_types buftype);
 struct vector *compile_string (struct vector *, char *str, size_t len);
 struct vector *compile_file (struct vector *, const char *cmdfile);
 void check_final_program (struct vector *);
 void rewind_read_files (void);
-void finish_program (void);
+void finish_program (struct vector *);
 
 struct regex *compile_regex (struct buffer *b, int flags, int needed_sub);
 int match_regex (struct regex *regex,
                  char *buf, size_t buflen, size_t buf_start_offset,
                  struct re_registers *regarray, int regsize);
-#ifdef DEBUG_LEAKS
+#ifdef lint
 void release_regex (struct regex *);
 #endif
+
+void
+debug_print_command (const struct vector *program, const struct sed_cmd *sc);
+void
+debug_print_program (const struct vector *program);
+void
+debug_print_char (char c);
 
 int process_files (struct vector *, char **argv);
 
@@ -248,6 +250,9 @@ extern bool is_utf8;
 /* If set, operate in 'sandbox' mode - disable e/r/w commands */
 extern bool sandbox;
 
+/* If set, print debugging information.  */
+extern bool debug;
+
 #define MBRTOWC(pwc, s, n, ps) \
   (mb_cur_max == 1 ? \
    (*(pwc) = btowc (*(unsigned char *) (s)), 1) : \
@@ -277,4 +282,12 @@ extern void cancel_cleanup (void);
 # define IF_LINT(Code) Code
 #else
 # define IF_LINT(Code) /* empty */
+#endif
+
+#ifndef FALLTHROUGH
+# if __GNUC__ < 7
+#  define FALLTHROUGH ((void) 0)
+# else
+#  define FALLTHROUGH __attribute__ ((__fallthrough__))
+# endif
 #endif

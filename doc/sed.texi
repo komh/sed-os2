@@ -34,7 +34,7 @@
 This file documents version @value{VERSION} of
 @value{SSED}, a stream editor.
 
-Copyright @copyright{} 1998-2016 Free Software Foundation, Inc.
+Copyright @copyright{} 1998-2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -51,7 +51,7 @@ section entitled ``GNU Free Documentation License''.
 @titlepage
 @title @value{SSED}, a stream editor
 @subtitle version @value{VERSION}, @value{UPDATED}
-@author by Ken Pizzini, Paolo Bonzini
+@author by Ken Pizzini, Paolo Bonzini, Jim Meyering, Assaf Gordon
 
 @page
 @vskip 0pt plus 1filll
@@ -154,7 +154,7 @@ other files. The following command modifies @file{file.txt} and
 does not produce any output:
 
 @example
-sed -i 's/hello/world' file.txt
+sed -i 's/hello/world/' file.txt
 @end example
 
 @cindex -n, example
@@ -253,6 +253,31 @@ These options disable this automatic printing,
 and @command{sed} only produces output when explicitly told to
 via the @code{p} command.
 
+@item --debug
+@opindex --debug
+@cindex @value{SSEDEXT}, debug
+Print the input sed program in canonical form,
+and annotate program execution.
+@codequotebacktick on
+@codequoteundirected on
+@example
+$ echo 1 | sed '\%1%s21232'
+3
+
+$ echo 1 | sed --debug '\%1%s21232'
+SED PROGRAM:
+  /1/ s/1/3/
+INPUT:   'STDIN' line 1
+PATTERN: 1
+COMMAND: /1/ s/1/3/
+PATTERN: 3
+END-OF-CYCLE:
+3
+@end example
+@codequotebacktick off
+@codequoteundirected off
+
+
 @item -e @var{script}
 @itemx --expression=@var{script}
 @opindex -e
@@ -307,6 +332,31 @@ directory (provided the directory already exists).
 If no extension is supplied, the original file is
 overwritten without making a backup.
 
+Because @option{-i} takes an optional argument, it should
+not be followed by other short options:
+@table @code
+@item sed -Ei '...' FILE
+Same as @option{-E -i} with no backup suffix - @file{FILE} will be
+edited in-place without creating a backup.
+
+@item sed -iE '...' FILE
+This is equivalent to @option{--in-place=E}, creating @file{FILEE} as backup
+of @file{FILE}
+@end table
+
+Be cautious of using @option{-n} with @option{-i}: the former disables
+automatic printing of lines and the latter changes the file in-place
+without a backup. Used carelessly (and without an explicit @code{p} command),
+the output file will be empty:
+@codequotebacktick on
+@codequoteundirected on
+@example
+# WRONG USAGE: 'FILE' will be truncated.
+sed -ni 's/foo/bar/' FILE
+@end example
+@codequotebacktick off
+@codequoteundirected off
+
 @item -l @var{N}
 @itemx --line-length=@var{N}
 @opindex -l
@@ -319,13 +369,13 @@ not specified, it is taken to be 70.
 @item --posix
 @opindex --posix
 @cindex @value{SSEDEXT}, disabling
-@value{SSED} includes several extensions to @acronym{POSIX}
+@value{SSED} includes several extensions to POSIX
 sed.  In order to simplify writing portable scripts, this
 option disables all the extensions that this manual documents,
 including additional commands.
 @cindex @code{POSIXLY_CORRECT} behavior, enabling
 Most of the extensions accept @command{sed} programs that
-are outside the syntax mandated by @acronym{POSIX}, but some
+are outside the syntax mandated by POSIX, but some
 of them (such as the behavior of the @command{N} command
 described in @ref{Reporting Bugs}) actually violate the
 standard.  If you want to disable only the latter kind of
@@ -362,12 +412,12 @@ so that the link destination will not be modified.
 @opindex -r
 @opindex --regexp-extended
 @cindex Extended regular expressions, choosing
-@cindex @acronym{GNU} extensions, extended regular expressions
+@cindex GNU extensions, extended regular expressions
 Use extended regular expressions rather than basic
 regular expressions.  Extended regexps are those that
 @command{egrep} accepts; they can be clearer because they
 usually have fewer backslashes.
-Historically this was a @acronym{GNU} extension,
+Historically this was a GNU extension,
 but the @option{-E}
 extension has since been added to the POSIX standard
 (http://austingroupbugs.net/view.php?id=528),
@@ -484,6 +534,7 @@ $ echo | sed 'Q42' ; echo $?
 * Other Commands::           Less frequently used commands
 * Programming Commands::     Commands for @command{sed} gurus
 * Extended Commands::        Commands specific of @value{SSED}
+* Multiple commands syntax:: Extension for easier scripting
 @end menu
 
 @node sed script overview
@@ -586,6 +637,7 @@ thus should be terminated
 with newlines or be placed at the end of a @var{script} or @var{script-file}.
 Commands can also be preceded with optional non-significant
 whitespace characters.
+@xref{Multiple commands syntax}.
 
 
 
@@ -698,7 +750,7 @@ ability to return an exit code to the caller.
 @c useful to quit on a conditional without printing
 
 @item r filename
-Reads text file a file. Example:
+Reads file @var{filename}.
 
 @item R filename
 Queue a line of @var{filename} to be read and
@@ -876,7 +928,7 @@ not just the first.
 @cindex Replacing only @var{n}th match of regexp in a line
 Only replace the @var{number}th match of the @var{regexp}.
 
-@cindex @acronym{GNU} extensions, @code{g} and @var{number} modifier
+@cindex GNU extensions, @code{g} and @var{number} modifier
 interaction in @code{s} command
 @cindex Mixing @code{g} and @var{number} modifiers in the @code{s} command
 Note: the @sc{posix} standard does not specify what should happen
@@ -903,12 +955,12 @@ while in general flags for the @code{s} command show their
 effect just once.  This behavior, although documented, might
 change in future versions.
 
-@item w @var{file-name}
+@item w @var{filename}
 @cindex Text, writing to a file after substitution
 @cindex @value{SSEDEXT}, @file{/dev/stdout} file
 @cindex @value{SSEDEXT}, @file{/dev/stderr} file
 If the substitution was made, then write out the result to the named file.
-As a @value{SSED} extension, two special values of @var{file-name} are
+As a @value{SSED} extension, two special values of @var{filename} are
 supported: @file{/dev/stderr}, which writes the result to the standard
 error, and @file{/dev/stdout}, which writes to the standard
 output.@footnote{This is equivalent to @code{p} unless the @option{-i}
@@ -928,9 +980,9 @@ a @sc{nul} character.  This is a @value{SSED} extension.
 
 @item I
 @itemx i
-@cindex @acronym{GNU} extensions, @code{I} modifier
+@cindex GNU extensions, @code{I} modifier
 @cindex Case-insensitive matching
-The @code{I} modifier to regular-expression matching is a @acronym{GNU}
+The @code{I} modifier to regular-expression matching is a GNU
 extension which makes @command{sed} match @var{regexp} in a
 case-insensitive manner.
 
@@ -998,7 +1050,7 @@ $ seq 3 | sed 2q
 2
 @end example
 
-This command only accepts a single address.
+This command accepts only one address.
 Note that the current pattern space is printed if auto-print is
 not disabled with the @option{-n} options.  The ability to return
 an exit code from the @command{sed} script is a @value{SSED} extension.
@@ -1133,7 +1185,7 @@ contain the same number of characters (after de-escaping).
 See the @command{tr} command from GNU coreutils for similar functionality.
 
 @item a @var{text}
-Appending @var{text} after a line. This is a @acronym{GNU} extension
+Appending @var{text} after a line. This is a GNU extension
 to the standard @code{a} command - see below for details.
 
 Example: Add the word @samp{hello} after the second line:
@@ -1149,7 +1201,7 @@ hello
 @codequoteundirected off
 @codequotebacktick off
 
-Leading whitespaces after the @code{a} command are ignored.
+Leading whitespace after the @code{a} command is ignored.
 The text to add is read until the end of the line.
 
 
@@ -1182,7 +1234,7 @@ to be output at the end of the current cycle,
 or when the next input line is read.
 
 @cindex @value{SSEDEXT}, two addresses supported by most commands
-As a @acronym{GNU} extension, this command accepts two addresses.
+As a GNU extension, this command accepts two addresses.
 
 Escape sequences in @var{text} are processed, so you should
 use @code{\\} in @var{text} to print a single backslash.
@@ -1205,7 +1257,7 @@ world
 @codequoteundirected off
 @codequotebacktick off
 
-As a @acronym{GNU} extension, the @code{a} command and @var{text} can be
+As a GNU extension, the @code{a} command and @var{text} can be
 separated into two @code{-e} parameters, enabling easier scripting:
 @codequoteundirected on
 @codequotebacktick on
@@ -1222,7 +1274,7 @@ $ sed -e '2a\' -e "$VAR"
 @codequotebacktick off
 
 @item i @var{text}
-insert @var{text} before a line. This is a @acronym{GNU} extension
+insert @var{text} before a line. This is a GNU extension
 to the standard @code{i} command - see below for details.
 
 Example: Insert the word @samp{hello} before the second line:
@@ -1238,9 +1290,10 @@ hello
 @codequoteundirected off
 @codequotebacktick off
 
-Leading whitespaces after the @code{i} command are ignored.
+Leading whitespace after the @code{i} command is ignored.
 The text to add is read until the end of the line.
 
+@anchor{insert command}
 @item i\
 @itemx @var{text}
 @findex i (insert text lines) command
@@ -1264,7 +1317,7 @@ hello'
 @codequotebacktick off
 
 @cindex @value{SSEDEXT}, two addresses supported by most commands
-As a @acronym{GNU} extension, this command accepts two addresses.
+As a GNU extension, this command accepts two addresses.
 
 Escape sequences in @var{text} are processed, so you should
 use @code{\\} in @var{text} to print a single backslash.
@@ -1287,7 +1340,7 @@ s/./X/'
 @codequoteundirected off
 @codequotebacktick off
 
-As a @acronym{GNU} extension, the @code{i} command and @var{text} can be
+As a GNU extension, the @code{i} command and @var{text} can be
 separated into two @code{-e} parameters, enabling easier scripting:
 @codequoteundirected on
 @codequotebacktick on
@@ -1304,7 +1357,7 @@ $ sed -e '2i\' -e "$VAR"
 @codequotebacktick off
 
 @item c @var{text}
-Replaces the line(s) with @var{text}. This is a @acronym{GNU} extension
+Replaces the line(s) with @var{text}. This is a GNU extension
 to the standard @code{c} command - see below for details.
 
 Example: Replace the 2nd to 9th lines with the word @samp{hello}:
@@ -1319,7 +1372,7 @@ hello
 @codequoteundirected off
 @codequotebacktick off
 
-Leading whitespaces after the @code{c} command are ignored.
+Leading whitespace after the @code{c} command is ignored.
 The text to add is read until the end of the line.
 
 @item c\
@@ -1366,7 +1419,7 @@ s/./X/'
 @codequoteundirected off
 @codequotebacktick off
 
-As a @acronym{GNU} extension, the @code{c} command and @var{text} can be
+As a GNU extension, the @code{c} command and @var{text} can be
 separated into two @code{-e} parameters, enabling easier scripting:
 @codequoteundirected on
 @codequotebacktick on
@@ -1403,7 +1456,7 @@ ccc
 @codequotebacktick off
 
 @cindex @value{SSEDEXT}, two addresses supported by most commands
-As a @acronym{GNU} extension, this command accepts two addresses.
+As a GNU extension, this command accepts two addresses.
 
 
 
@@ -1429,7 +1482,7 @@ parameter is a @value{SSED} extension.
 
 @findex r (read file) command
 @cindex Read text from a file
-Reads text file a file. Example:
+Reads file @var{filename}. Example:
 
 @codequoteundirected on
 @codequotebacktick on
@@ -1455,7 +1508,7 @@ is supported for the file name, which reads the contents of the
 standard input.
 
 @cindex @value{SSEDEXT}, two addresses supported by most commands
-As a @acronym{GNU} extension, this command accepts two addresses. The
+As a GNU extension, this command accepts two addresses. The
 file will then be reread and inserted on each of the addressed lines.
 
 @item w @var{filename}
@@ -1464,7 +1517,7 @@ file will then be reread and inserted on each of the addressed lines.
 @cindex @value{SSEDEXT}, @file{/dev/stdout} file
 @cindex @value{SSEDEXT}, @file{/dev/stderr} file
 Write the pattern space to @var{filename}.
-As a @value{SSED} extension, two special values of @var{file-name} are
+As a @value{SSED} extension, two special values of @var{filename} are
 supported: @file{/dev/stderr}, which writes the result to the standard
 error, and @file{/dev/stdout}, which writes to the standard
 output.@footnote{This is equivalent to @code{p} unless the @option{-i}
@@ -1620,7 +1673,7 @@ Print out the file name of the current input file (with a trailing
 newline).
 
 @item Q [@var{exit-code}]
-This command only accepts a single address.
+This command accepts only one address.
 
 @findex Q (silent Quit) command
 @cindex @value{SSEDEXT}, quitting silently
@@ -1706,7 +1759,283 @@ script in most multibyte locales (including UTF-8 locales).
 @end table
 
 
+@node Multiple commands syntax
+@section Multiple commands syntax
 
+@c POSIX says:
+@c   Editing commands other than {...}, a, b, c, i, r, t, w, :, and #
+@c   can be followed by a <semicolon>, optional <blank> characters, and
+@c   another editing command. However, when an s editing command is used
+@c   with the w flag, following it with another command in this manner
+@c   produces undefined results.
+
+There are several methods to specify multiple commands in a @command{sed}
+program.
+
+Using newlines is most natural when running a sed script from a file
+(using the @option{-f} option).
+
+On the command line, all @command{sed} commands may be separated by newlines.
+Alternatively, you may specify each command as an argument to an @option{-e}
+option:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 6 | sed '1d
+3d
+5d'
+2
+4
+6
+
+$ seq 6 | sed -e 1d -e 3d -e 5d
+2
+4
+6
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+A semicolon (@samp{;}) may be used to separate most simple commands:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 6 | sed '1d;3d;5d'
+2
+4
+6
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+The @code{@{},@code{@}},@code{b},@code{t},@code{T},@code{:} commands can
+be separated with a semicolon (this is a non-portable @value{SSED} extension).
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 4 | sed '@{1d;3d@}'
+2
+4
+
+$ seq 6 | sed '@{1d;3d@};5d'
+2
+4
+6
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+Labels used in @code{b},@code{t},@code{T},@code{:} commands are read
+until a semicolon.  Leading and trailing whitespace is ignored.  In
+the examples below the label is @samp{x}.  The first example works
+with @value{SSED}.  The second is a portable equivalent.  For more
+information about branching and labels @pxref{Branching and flow
+control}.
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 3 | sed '/1/b x ; s/^/=/ ; :x ; 3d'
+1
+=2
+
+$ seq 3 | sed -e '/1/bx' -e 's/^/=/' -e ':x' -e '3d'
+1
+=2
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+
+
+@subsection Commands Requiring a newline
+
+The following commands cannot be separated by a semicolon and
+require a newline:
+
+@table @asis
+
+@item @code{a},@code{c},@code{i} (append/change/insert)
+
+All characters following @code{a},@code{c},@code{i} commands are taken
+as the text to append/change/insert.  Using a semicolon leads to
+undesirable results:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 2 | sed '1aHello ; 2d'
+1
+Hello ; 2d
+2
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+Separate the commands using @option{-e} or a newline:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 2 | sed -e 1aHello -e 2d
+1
+Hello
+
+$ seq 2 | sed '1aHello
+2d'
+1
+Hello
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+Note that specifying the text to add (@samp{Hello}) immediately
+after @code{a},@code{c},@code{i} is itself a @value{SSED} extension.
+A portable, POSIX-compliant alternative is:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 2 | sed '1a\
+Hello
+2d'
+1
+Hello
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@item @code{#} (comment)
+
+All characters following @samp{#} until the next newline are ignored.
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 3 | sed '# this is a comment ; 2d'
+1
+2
+3
+
+
+$ seq 3 | sed '# this is a comment
+2d'
+1
+3
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@item @code{r},@code{R},@code{w},@code{W} (reading and writing files)
+
+The @code{r},@code{R},@code{w},@code{W} commands parse the filename
+until end of the line.  If whitespace, comments or semicolons are found,
+they will be included in the filename, leading to unexpected results:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 2 | sed '1w hello.txt ; 2d'
+1
+2
+
+$ ls -log
+total 4
+-rw-rw-r-- 1 2 Jan 23 23:03 hello.txt ; 2d
+
+$ cat 'hello.txt ; 2d'
+1
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+Note that @command{sed} silently ignores read/write errors in
+@code{r},@code{R},@code{w},@code{W} commands (such as missing files).
+In the following example, @command{sed} tries to read a file named
+@samp{@file{hello.txt ; N}}. The file is missing, and the error is silently
+ignored:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ echo x | sed '1rhello.txt ; N'
+x
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@item @code{e} (command execution)
+
+Any characters following the @code{e} command until the end of the line
+will be sent to the shell.  If whitespace, comments or semicolons are found,
+they will be included in the shell command, leading to unexpected results:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ echo a | sed '1e touch foo#bar'
+a
+
+$ ls -1
+foo#bar
+
+$ echo a | sed '1e touch foo ; s/a/b/'
+sh: 1: s/a/b/: not found
+a
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+
+@item @code{s///[we]} (substitute with @code{e} or @code{w} flags)
+
+In a substitution command, the @code{w} flag writes the substitution
+result to a file, and the @code{e} flag executes the subsitution result
+as a shell command.  As with the @code{r/R/w/W/e} commands, these
+must be terminated with a newline.  If whitespace, comments or semicolons
+are found, they will be included in the shell command or filename, leading to
+unexpected results:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ echo a | sed 's/a/b/w1.txt#foo'
+b
+
+$ ls -1
+1.txt#foo
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@end table
 
 
 @node sed addresses
@@ -1840,8 +2169,8 @@ are specified.
 
 
 @item @var{first}~@var{step}
-@cindex @acronym{GNU} extensions, @samp{@var{n}~@var{m}} addresses
-This @acronym{GNU} extension matches every @var{step}th line
+@cindex GNU extensions, @samp{@var{n}~@var{m}} addresses
+This GNU extension matches every @var{step}th line
 starting with line @var{first}.
 In particular, lines will be selected when there exists
 a non-negative @var{n} such that the current line-number equals
@@ -1922,7 +2251,7 @@ a lot of slashes, since it avoids the tedious escaping of every @code{/}.
 If @var{regexp} itself includes any delimiter characters,
 each must be escaped by a backslash (@code{\}).
 
-The following two commands are equivalent. They print lines
+The following commands are equivalent. They print lines
 which start with @samp{/home/alice/documents/}:
 
 @example
@@ -1934,15 +2263,15 @@ sed -n '\;^/home/alice/documents/;p'
 
 @item /@var{regexp}/I
 @itemx \%@var{regexp}%I
-@cindex @acronym{GNU} extensions, @code{I} modifier
+@cindex GNU extensions, @code{I} modifier
 @cindex case insensitive, regular expression
-The @code{I} modifier to regular-expression matching is a @acronym{GNU}
+The @code{I} modifier to regular-expression matching is a GNU
 extension which causes the @var{regexp} to be matched in
 a case-insensitive manner.
 
 In many other programming languages, a lower case @code{i} is used
 for case-insensitive regular expression matching. However, in @command{sed}
-the @code{i} is used for the insert command (TODO: add @code{pxref}).
+the @code{i} is used for the insert command (@pxref{insert command}).
 
 Observe the difference between the following examples.
 
@@ -1985,6 +2314,33 @@ In addition,
 the period character does not match a new-line character in
 multi-line mode.
 @end table
+
+
+@cindex regex addresses and pattern space
+@cindex regex addresses and input lines
+Regex addresses operate on the content of the current
+pattern space. If the pattern space is changed (for example with @code{s///}
+command) the regular expression matching will operate on the changed text.
+
+In the following example, automatic printing is disabled with
+@option{-n}.  The @code{s/2/X/} command changes lines containing
+@samp{2} to @samp{X}. The command @code{/[0-9]/p} matches
+lines with digits and prints them.
+Because the second line is changed before the @code{/[0-9]/} regex,
+it will not match and will not be printed:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 3 | sed -n 's/2/X/ ; /[0-9]/p'
+1
+3
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
 
 @node Range Addresses
 @section Range Addresses
@@ -2029,13 +2385,13 @@ $ seq 10 | sed -n '4,1p'
 @cindex Zero, as range start address
 @cindex @var{addr1},+N
 @cindex @var{addr1},~N
-@cindex @acronym{GNU} extensions, special two-address forms
-@cindex @acronym{GNU} extensions, @code{0} address
-@cindex @acronym{GNU} extensions, 0,@var{addr2} addressing
-@cindex @acronym{GNU} extensions, @var{addr1},+@var{N} addressing
-@cindex @acronym{GNU} extensions, @var{addr1},~@var{N} addressing
+@cindex GNU extensions, special two-address forms
+@cindex GNU extensions, @code{0} address
+@cindex GNU extensions, 0,@var{addr2} addressing
+@cindex GNU extensions, @var{addr1},+@var{N} addressing
+@cindex GNU extensions, @var{addr1},~@var{N} addressing
 @value{SSED} also supports some special two-address forms; all these
-are @acronym{GNU} extensions:
+are GNU extensions:
 @table @code
 @item 0,/@var{regexp}/
 A line number of @code{0} can be used in an address specification like
@@ -2110,7 +2466,7 @@ $ seq 10 | sed -n '6,~4p'
 * regexp extensions::        Additional regular expression commands
 * Back-references and Subexpressions:: Back-references and Subexpressions
 * Escapes::                  Specifying special characters
-* Locale Considerations::
+* Locale Considerations::    Multibyte characters and locale considrations
 @end menu
 
 @node Regular Expressions Overview
@@ -2168,21 +2524,21 @@ characters in regular expressions.
 @section Basic (BRE) and extended (ERE) regular expression
 
 Basic and extended regular expressions are two variations on the
-syntax of the specified pattern. Basic Regular Expression (BRE) is the
-default in @command{sed} (and similarly in @command{grep}).  Extended
-Regular Expression syntax (ERE) is activated by using the @option{-r}
-or @option{-E} options (and similarly, @command{grep -E}).
+syntax of the specified pattern. Basic Regular Expression (BRE) syntax is the
+default in @command{sed} (and similarly in @command{grep}).
+Use the POSIX-specified @option{-E} option (@option{-r},
+@option{--regexp-extended}) to enable Extended Regular Expression (ERE) syntax.
 
-In @value{SSED} the only difference between basic and extended regular
+In @value{SSED}, the only difference between basic and extended regular
 expressions is in the behavior of a few special characters: @samp{?},
 @samp{+}, parentheses, braces (@samp{@{@}}), and @samp{|}.
 
 With basic (BRE) syntax, these characters do not have special meaning
-unless prefixed backslash (@samp{\}); While with extended (ERE) syntax
+unless prefixed with a backslash (@samp{\}); While with extended (ERE) syntax
 it is reversed: these characters are special unless they are prefixed
 with backslash (@samp{\}).
 
-@multitable @columnfractions .33 .33 .33
+@multitable @columnfractions .28 .36 .35
 
 @headitem Desired pattern
 @tab Basic (BRE) Syntax
@@ -2191,32 +2547,56 @@ with backslash (@samp{\}).
 @item literal @samp{+} (plus sign)
 
 @tab
+@exampleindent 0
+@codequoteundirected on
+@codequotebacktick on
 @example
-$ echo "a+b=c" | sed -n '/a+b/p'
+$ echo 'a+b=c' > foo
+$ sed -n '/a+b/p' foo
 a+b=c
 @end example
+@codequotebacktick off
+@codequoteundirected off
 
 @tab
+@exampleindent 0
+@codequoteundirected on
+@codequotebacktick on
 @example
-$ echo "a+b=c" | sed -E -n '/a\+b/p'
+$ echo 'a+b=c' > foo
+$ sed -E -n '/a\+b/p' foo
 a+b=c
 @end example
+@codequotebacktick off
+@codequoteundirected off
 
 
 @item One or more @samp{a} characters followed by @samp{b}
 (plus sign as special meta-character)
 
 @tab
+@exampleindent 0
+@codequoteundirected on
+@codequotebacktick on
 @example
-$ echo "aab" | sed -n '/a\+b/p'
+$ echo aab > foo
+$ sed -n '/a\+b/p' foo
 aab
 @end example
+@codequotebacktick off
+@codequoteundirected off
 
 @tab
+@exampleindent 0
+@codequoteundirected on
+@codequotebacktick on
 @example
-$ echo "aab" | sed -E -n '/a+b/p'
+$ echo aab > foo
+$ sed -E -n '/a+b/p' foo
 aab
 @end example
+@codequotebacktick off
+@codequoteundirected off
 
 @end multitable
 
@@ -2234,16 +2614,16 @@ of regular expression syntax as used in @command{sed}.
 A single ordinary character matches itself.
 
 @item *
-@cindex @acronym{GNU} extensions, to basic regular expressions
+@cindex GNU extensions, to basic regular expressions
 Matches a sequence of zero or more instances of matches for the
 preceding regular expression, which must be an ordinary character, a
 special character preceded by @code{\}, a @code{.}, a grouped regexp
-(see below), or a bracket expression.  As a @acronym{GNU} extension, a
+(see below), or a bracket expression.  As a GNU extension, a
 postfixed regular expression can also be followed by @code{*}; for
-example, @code{a**} is equivalent to @code{a*}.  @acronym{POSIX}
+example, @code{a**} is equivalent to @code{a*}.  POSIX
 1003.1-2001 says that @code{*} stands for itself when it appears at
 the start of a regular expression or subexpression, but many
-non@acronym{GNU} implementations do not support this and portable
+nonGNU implementations do not support this and portable
 scripts should instead use @code{\*} in these contexts.
 @item .
 Matches any character, including newline.
@@ -2264,7 +2644,7 @@ for example with an @code{s} command.
 @code{^} acts as a special character only at the beginning of the
 regular expression or subexpression (that is, after @code{\(} or
 @code{\|}).  Portable scripts should avoid @code{^} at the beginning of
-a subexpression, though, as @acronym{POSIX} allows implementations that
+a subexpression, though, as POSIX allows implementations that
 treat @code{^} as an ordinary character in that context.
 
 @item $
@@ -2285,12 +2665,12 @@ and @var{char2}.
 @xref{Character Classes and Bracket Expressions}.
 
 @item \+
-@cindex @acronym{GNU} extensions, to basic regular expressions
-As @code{*}, but matches one or more.  It is a @acronym{GNU} extension.
+@cindex GNU extensions, to basic regular expressions
+As @code{*}, but matches one or more.  It is a GNU extension.
 
 @item \?
-@cindex @acronym{GNU} extensions, to basic regular expressions
-As @code{*}, but only matches zero or one.  It is a @acronym{GNU} extension.
+@cindex GNU extensions, to basic regular expressions
+As @code{*}, but only matches zero or one.  It is a GNU extension.
 
 @item \@{@var{i}\@}
 As @code{*}, but matches exactly @var{i} sequences (@var{i} is a
@@ -2308,13 +2688,13 @@ Groups the inner @var{regexp} as a whole, this is used to:
 
 @itemize @bullet
 @item
-@cindex @acronym{GNU} extensions, to basic regular expressions
+@cindex GNU extensions, to basic regular expressions
 Apply postfix operators, like @code{\(abcd\)*}:
 this will search for zero or more whole sequences
 of @samp{abcd}, while @code{abcd*} would search
 for @samp{abc} followed by zero or more occurrences
 of @samp{d}.  Note that support for @code{\(abcd\)*} is
-required by @acronym{POSIX} 1003.1-2001, but many non-@acronym{GNU}
+required by POSIX 1003.1-2001, but many non-GNU
 implementations do not support it and hence it is not universally
 portable.
 
@@ -2324,12 +2704,12 @@ Use back references (see below).
 
 
 @item @var{regexp1}\|@var{regexp2}
-@cindex @acronym{GNU} extensions, to basic regular expressions
+@cindex GNU extensions, to basic regular expressions
 Matches either @var{regexp1} or @var{regexp2}.  Use
 parentheses to use complex alternative regular expressions.
 The matching process tries each alternative in turn, from
 left to right, and the first one that succeeds is used.
-It is a @acronym{GNU} extension.
+It is a GNU extension.
 
 @item @var{regexp1}@var{regexp2}
 Matches the concatenation of @var{regexp1} and @var{regexp2}.
@@ -2406,10 +2786,10 @@ Instead, this matches a string consisting of a single dollar sign,
 because it is escaped.
 
 @item [a-zA-Z0-9]
-In the C locale, this matches any @acronym{ASCII} letters or digits.
+In the C locale, this matches any ASCII letters or digits.
 
-@item [^ @kbd{tab}]\+
-(Here @kbd{tab} stands for a single tab character.)
+@item [^ @kbd{@key{TAB}}]\+
+(Here @kbd{@key{TAB}} stands for a single tab character.)
 This matches a string of one or more
 characters, none of which is a space or a tab.
 Usually this means a word.
@@ -2730,7 +3110,7 @@ are either both ``word'' characters or both ``non-word''
 characters.
 
 @example
-$ echo "abc %-= def." | sed 's/\w/X/g'
+$ echo "abc %-= def." | sed 's/\B/X/g'
 aXbXc X%X-X=X dXeXf.X
 @end example
 
@@ -2749,7 +3129,7 @@ abcX%-=Xdef.
 Matches non-whitespace characters.
 
 @example
-$ echo "abc %-= def." | sed 's/\w/X/g'
+$ echo "abc %-= def." | sed 's/\S/X/g'
 XXX XXX XXXX
 @end example
 
@@ -2871,7 +3251,7 @@ regular expressions are given with @option{-e} or from a file
 @node Escapes
 @section Escape Sequences - specifying special characters
 
-@cindex @acronym{GNU} extensions, special escapes
+@cindex GNU extensions, special escapes
 Until this chapter, we have only encountered escapes of the form
 @samp{\^}, which tell @command{sed} not to interpret the circumflex
 as a special character, but rather to take it literally.  For
@@ -2880,7 +3260,7 @@ or more backslashes.
 
 @cindex @code{POSIXLY_CORRECT} behavior, escapes
 This chapter introduces another kind of escape@footnote{All
-the escapes introduced here are @acronym{GNU}
+the escapes introduced here are GNU
 extensions, with the exception of @code{\n}.  In basic regular
 expression mode, setting @code{POSIXLY_CORRECT} disables them inside
 bracket expressions.}---that
@@ -2935,18 +3315,274 @@ Produces or matches a character whose hexadecimal @sc{ascii} value is @var{xx}.
 @samp{\b} (backspace) was omitted because of the conflict with
 the existing ``word boundary'' meaning.
 
+@subsection Escaping Precedence
+
+@value{SSED} processes escape sequences @emph{before} passing
+the text onto the regular-expression matching of the @command{s///} command
+and Address matching. Thus the follwing two commands are equivalent
+(@samp{0x5e} is the hexadecimal @sc{ascii} value of the character @samp{^}):
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ echo 'a^c' | sed 's/^/b/'
+ba^c
+
+$ echo 'a^c' | sed 's/\x5e/b/'
+ba^c
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+As are the following (@samp{0x5b},@samp{0x5d} are the hexadecimal
+@sc{ascii} values of @samp{[},@samp{]}, respectively):
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ echo abc | sed 's/[a]/x/'
+Xbc
+$ echo abc | sed 's/\x5ba\x5d/x/'
+Xbc
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+However it is recommended to avoid such special characters
+due to unexpected edge-cases. For example, the following
+are not equivalent:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ echo 'a^c' | sed 's/\^/b/'
+abc
+
+$ echo 'a^c' | sed 's/\\\x5e/b/'
+a^c
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@c also: this fails in different places:
+@c   $ sed 's/[//'
+@c   sed: -e expression #1, char 5: unterminated `s' command
+@c   $ sed 's/\x5b//'
+@c   sed: -e expression #1, char 8: Invalid regular expression
+@c
+@c which is OK but confusing to explain why (the first
+@c fails in compile.c:snarf_char_class while the second
+@c is passed to the regex engine and then fails).
+
 
 @node Locale Considerations
-@section Locale Considerations
+@section Multibyte characters and Locale Considerations
 
-TODO: fix following paragraphs (copied verbatim from 'bracket
-expression' section).
+@value{SSED} processes valid multibyte characters in multibyte locales
+(e.g. @code{UTF-8}).  @footnote{Some regexp edge-cases depends on the
+operating system and libc implementation. The examples shown are known
+to work as-expected on GNU/Linux systems using glibc.}
 
-TODO: mention locale support is heavily dependent on the OS/libc, not on sed.
+@noindent The following example uses the Greek letter Capital Sigma
+(@value{ucsigma},
+Unicode code point @code{0x03A3}). In a @code{UTF-8} locale,
+@command{sed} correctly processes the Sigma as one character despite
+it being 2 octets (bytes):
 
-The current locale affects the characters matched by @command{sed}'s
-regular expressions.
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ locale | grep LANG
+LANG=en_US.UTF-8
 
+$ printf 'a\u03A3b'
+a@value{ucsigma}b
+
+$ printf 'a\u03A3b' | sed 's/./X/g'
+XXX
+
+$ printf 'a\u03A3b' | od -tx1 -An
+ 61 ce a3 62
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@noindent
+To force @command{sed} to process octets separately, use the @code{C} locale
+(also known as the @code{POSIX} locale):
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+$ printf 'a\u03A3b' | LC_ALL=C sed 's/./X/g'
+XXXX
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@subsection Invalid multibyte characters
+
+@command{sed}'s regular expressions @emph{do not} match
+invalid multibyte sequences in a multibyte locale.
+
+@noindent
+In the following examples, the ascii value @code{0xCE} is
+an incomplete multibyte character (shown here as @value{unicodeFFFD}).
+The regular expression @samp{.} does not match it:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ printf 'a\xCEb\n'
+a@value{unicodeFFFD}e
+
+$ printf 'a\xCEb\n' | sed 's/./X/g'
+X@value{unicodeFFFD}X
+
+$ printf 'a\xCEc\n' | sed 's/./X/g' | od -tx1c -An
+  58  ce  58  0a
+   X      X   \n
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@noindent Similarly, the 'catch-all' regular expression @samp{.*} does not
+match the entire line:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ printf 'a\xCEc\n' | sed 's/.*//' | od -tx1c -An
+  ce  63  0a
+       c  \n
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@noindent
+@value{SSED} offers the special @command{z} command to clear the
+current pattern space regardless of invalid multibyte characters
+(i.e. it works like @code{s/.*//} but also removes invalid multibyte
+characters):
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ printf 'a\xCEc\n' | sed 'z' | od -tx1c -An
+   0a
+   \n
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@noindent Alternatively, force the @code{C} locale to process
+each octet separately (every octet is a valid character in the @code{C}
+locale):
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ printf 'a\xCEc\n' | LC_ALL=C sed 's/.*//' | od -tx1c -An
+  0a
+  \n
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+
+@command{sed}'s inability to process invalid multibyte characters
+can be used to detect such invalid sequences in a file.
+In the following examples, the @code{\xCE\xCE} is an invalid
+multibyte sequence, while @code{\xCE\A3} is a valid multibyte sequence
+(of the Greek Sigma character).
+
+@noindent
+The following @command{sed} program removes all valid
+characters using @code{s/.//g}.  Any content left in the pattern space
+(the invalid characters) are added to the hold space using the
+@code{H} command. On the last line (@code{$}), the hold space is retrieved
+(@code{x}), newlines are removed (@code{s/\n//g}), and any remaining
+octets are printed unambiguously (@code{l}).  Thus, any invalid
+multibyte sequences are printed as octal values:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ printf 'ab\nc\n\xCE\xCEde\n\xCE\xA3f\n' > invalid.txt
+
+$ cat invalid.txt
+ab
+c
+@value{unicodeFFFD}@value{unicodeFFFD}de
+@value{ucsigma}f
+
+$ sed -n 's/.//g ; H ; $@{x;s/\n//g;l@}' invalid.txt
+\316\316$
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@noindent With a few more commands, @command{sed} can print
+the exact line number corresponding to each invalid characters (line 3).
+These characters can then be removed by forcing the @code{C} locale
+and using octal escape sequences:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+$ sed -n 's/.//g;=;l' invalid.txt | paste - -  | awk '$2!="$"'
+3       \316\316$
+
+$ LC_ALL=C sed '3s/\o316\o316//' invalid.txt > fixed.txt
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@subsection Upper/Lower case conversion
+
+
+@value{SSED}'s substitute command (@code{s}) supports upper/lower
+case conversions using @code{\U},@code{\L} codes.
+These conversions support multibyte characters:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+$ printf 'ABC\u03a3\n'
+ABC@value{ucsigma}
+
+$ printf 'ABC\u03a3\n' | sed 's/.*/\L&/'
+abc@value{lcsigma}
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@noindent
+@xref{The "s" Command}.
+
+
+@subsection Multibyte regexp character classes
+
+@c TODO: fix following paragraphs (copied verbatim from 'bracket
+@c expression' section).
 
 In other locales, the sorting sequence is not specified, and
 @samp{[a-d]} might be equivalent to @samp{[abcd]} or to
@@ -2969,11 +3605,15 @@ in the current locale.
 
 TODO: show example of collation
 
+@codequoteundirected on
+@codequotebacktick on
 @example
 # TODO: this works on glibc systems, not on musl-libc/freebsd/macosx.
 $ printf 'cliché\n' | LC_ALL=fr_FR.utf8 sed 's/[[=e=]]/X/g'
 clichX
 @end example
+@codequoteundirected off
+@codequotebacktick off
 
 
 @node advanced sed
@@ -3085,7 +3725,7 @@ command appends a newline and the next line to the pattern space
 (i.e. @samp{1}, @samp{\n}, @samp{2} in the first cycle).
 @item
 The @code{l} command prints the content of the pattern space
-unambigiously.
+unambiguously.
 @item
 The @code{D} command then removes the content of pattern
 space up to the first newline (leaving @samp{2} at the end of
@@ -3173,7 +3813,303 @@ and @ref{Line length adjustment}.
 @node Branching and flow control
 @section Branching and Flow Control
 
-TODO
+The branching commands @code{b}, @code{t}, and @code{T} enable
+changing the flow of @command{sed} programs.
+
+By default, @command{sed} reads an input line into the pattern buffer,
+then continues to processes all commands in order.
+Commands without addresses affect all lines.
+Commands with addresses affect only matching lines.
+@xref{Execution Cycle} and @ref{Addresses overview}.
+
+@command{sed} does not support a typical @code{if/then} construct.
+Instead, some commands can be used as conditionals or to change the
+default flow control:
+
+@table @code
+
+@item d
+delete (clears) the current pattern space,
+and restart the program cycle without processing the rest of the commands
+and without printing the pattern space.
+
+@item D
+delete the contents of the pattern space @emph{up to the first newline},
+and restart the program cycle without processing the rest of
+the commands and without printing the pattern space.
+
+@item [addr]X
+@itemx [addr]@{ X ; X ; X @}
+@item /regexp/X
+@item /regexp/@{ X ; X ; X @}
+Addresses and regular expressions can be used as an @code{if/then}
+conditional: If @var{[addr]} matches the current pattern space,
+execute the command(s).
+For example: The command @code{/^#/d} means:
+@emph{if} the current pattern matches the regular expression @code{^#} (a line
+starting with a hash), @emph{then} execute the @code{d} command:
+delete the line without printing it, and restart the program cycle
+immediately.
+
+@item b
+branch unconditionally (that is: always jump to a label, skipping
+or repeating other commands, without restarting a new cycle). Combined
+with an address, the branch can be conditionally executed on matched
+lines.
+
+@item t
+branch conditionally (that is: jump to a label) @emph{only if} a
+@code{s///} command has succeeded since the last input line was read
+or another conditional branch was taken.
+
+@item T
+similar but opposite to the @code{t} command: branch only if
+there has been @emph{no} successful substitutions since the last
+input line was read.
+@end table
+
+
+The following two @command{sed} programs are equivalent.  The first
+(contrived) example uses the @code{b} command to skip the @code{s///}
+command on lines containing @samp{1}.  The second example uses an
+address with negation (@samp{!})  to perform substitution only on
+desired lines.  The @code{y///} command is still executed on all
+lines:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ printf '%s\n' a1 a2 a3 | sed -E '/1/bx ; s/a/z/ ; :x ; y/123/456/'
+a4
+z5
+z6
+
+$ printf '%s\n' a1 a2 a3 | sed -E '/1/!s/a/z/ ; y/123/456/'
+a4
+z5
+z6
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+
+
+@subsection Branching and Cycles
+@cindex labels
+@cindex omitting labels
+@cindex cycle, restarting
+@cindex restarting a cycle
+The @code{b},@code{t} and @code{T} commands can be followed by a label
+(typically a single letter). Labels are defined with a colon followed by
+one or more letters (e.g. @samp{:x}). If the label is omitted the
+branch commands restart the cycle.  Note the difference between
+branching to a label and restarting the cycle: when a cycle is
+restarted, @command{sed} first prints the current content of the
+pattern space, then reads the next input line into the pattern space;
+Jumping to a label (even if it is at the beginning of the program)
+does not print the pattern space and does not read the next input line.
+
+The following program is a no-op. The @code{b} command (the only command
+in the program) does not have a label, and thus simply restarts the cycle.
+On each cycle, the pattern space is printed and the next input line is read:
+
+@example
+@group
+$ seq 3 | sed b
+1
+2
+3
+@end group
+@end example
+
+@cindex infinite loop, branching
+@cindex branching, infinite loop
+The following example is an infinite-loop - it doesn't terminate and
+doesn't print anything. The @code{b} command jumps to the @samp{x}
+label, and a new cycle is never started:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 3 | sed ':x ; bx'
+
+# The above command requires gnu sed (which supports additional
+# commands following a label, without a newline). A portable equivalent:
+#     sed -e ':x' -e bx
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@cindex branching and n, N
+@cindex n, and branching
+@cindex N, and branching
+Branching is often complemented with the @code{n} or @code{N} commands:
+both commands read the next input line into the pattern space without waiting
+for the cycle to restart. Before reading the next input line, @code{n}
+prints the current pattern space then empties it, while @code{N}
+appends a newline and the next input line to the pattern space.
+
+Consider the following two examples:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ seq 3 | sed ':x ; n ; bx'
+1
+2
+3
+
+$ seq 3 | sed ':x ; N ; bx'
+1
+2
+3
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@itemize
+@item
+Both examples do not inf-loop, despite never starting a new cycle.
+
+@item
+In the first example, the @code{n} commands first prints the content
+of the pattern space, empties the pattern space then reads the next
+input line.
+
+@item
+In the second example, the @code{N} commands appends the next input
+line to the pattern space (with a newline).  Lines are accumulated in
+the pattern space until there are no more input lines to read, then
+the @code{N} command terminates the @command{sed} program. When the
+program terminates, the end-of-cycle actions are performed, and the
+entire pattern space is printed.
+
+@item
+The second example requires @value{SSED},
+because it uses the non-POSIX-standard behavior of @code{N}.
+See the ``@code{N} command on the last line'' paragraph
+in @ref{Reporting Bugs}.
+
+@item
+To further examine the difference between the two examples,
+try the following commands:
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+printf '%s\n' aa bb cc dd | sed ':x ; n ; = ; bx'
+printf '%s\n' aa bb cc dd | sed ':x ; N ; = ; bx'
+printf '%s\n' aa bb cc dd | sed ':x ; n ; s/\n/***/ ; bx'
+printf '%s\n' aa bb cc dd | sed ':x ; N ; s/\n/***/ ; bx'
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@end itemize
+
+
+
+@subsection Branching example: joining lines
+
+@cindex joining lines with branching
+@cindex branching, joining lines
+@cindex quoted-printable lines, joining
+@cindex joining quoted-printable lines
+@cindex t, joining lines with
+@cindex b, joining lines with
+@cindex b, versus t
+@cindex t, versus b
+As a real-world example of using branching, consider the case of
+@uref{https://en.wikipedia.org/wiki/Quoted-printable,quoted-printable} files,
+typically used to encode email messages.
+In these files long lines are split and marked with a @dfn{soft line break}
+consisting of a single @samp{=} character at the end of the line:
+
+@example
+@group
+$ cat jaques.txt
+All the wor=
+ld's a stag=
+e,
+And all the=
+ men and wo=
+men merely =
+players:
+They have t=
+heir exits =
+and their e=
+ntrances;
+And one man=
+ in his tim=
+e plays man=
+y parts.
+@end group
+@end example
+
+
+The following program uses an address match @samp{/=$/} as a
+conditional: If the current pattern space ends with a @samp{=}, it
+reads the next input line using @code{N}, replaces all @samp{=}
+characters which are followed by a newline, and unconditionally
+branches (@code{b}) to the beginning of the program without restarting
+a new cycle. If the pattern space does not ends with @samp{=}, the
+default action is performed: the pattern space is printed and a new
+cycle is started:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ sed ':x ; /=$/ @{ N ; s/=\n//g ; bx @}' jaques.txt
+All the world's a stage,
+And all the men and women merely players:
+They have their exits and their entrances;
+And one man in his time plays many parts.
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+Here's an alternative program with a slightly different approach: On
+all lines except the last, @code{N} appends the line to the pattern
+space.  A substitution command then removes soft line breaks
+(@samp{=} at the end of a line, i.e. followed by a newline) by replacing
+them with an empty string.
+@emph{if} the substitution was successful (meaning the pattern space contained
+a line which should be joined), The conditional branch command @code{t} jumps
+to the beginning of the program without completing or restarting the cycle.
+If the substitution failed (meaning there were no soft line breaks),
+The @code{t} command will @emph{not} branch. Then, @code{P} will
+print the pattern space content until the first newline, and @code{D}
+will delete the pattern space content until the first new line.
+(To learn more about @code{N}, @code{P} and @code{D} commands
+@pxref{Multiline techniques}).
+
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ sed ':x ; $!N ; s/=\n// ; tx ; P ; D' jaques.txt
+All the world's a stage,
+And all the men and women merely players:
+They have their exits and their entrances;
+And one man in his time plays many parts.
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+
+For more line-joining examples @pxref{Joining lines}.
+
 
 @node Examples
 @chapter Some Sample Scripts
@@ -3213,6 +4149,10 @@ Emulating standard utilities:
 @node Joining lines
 @section Joining lines
 
+This section uses @code{N}, @code{D} and @code{P} commands to process
+multiple lines, and the @code{b} and @code{t} commands for branching.
+@xref{Multiline techniques} and @ref{Branching and flow control}.
+
 Join specific lines (e.g. if lines 2 and 3 need to be joined):
 
 @codequoteundirected on
@@ -3232,7 +4172,7 @@ hello
 @codequoteundirected off
 @codequotebacktick off
 
-Join lines ending with backslashes:
+Join backslash-continued lines:
 
 @codequoteundirected on
 @codequotebacktick on
@@ -3256,6 +4196,42 @@ and another line
 @end example
 @codequoteundirected off
 @codequotebacktick off
+
+Join lines that start with whitespace (e.g SMTP headers):
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ cat 2.txt
+Subject: Hello
+    World
+Content-Type: multipart/alternative;
+    boundary=94eb2c190cc6370f06054535da6a
+Date: Tue, 3 Jan 2017 19:41:16 +0000 (GMT)
+Authentication-Results: mx.gnu.org;
+       dkim=pass header.i=@@gnu.org;
+       spf=pass
+Message-ID: <abcdef@@gnu.org>
+From: John Doe <jdoe@@gnu.org>
+To: Jane Smith <jsmith@@gnu.org>
+
+$ sed -E ':a ; $!N ; s/\n\s+/ / ; ta ; P ; D' 2.txt
+Subject: Hello World
+Content-Type: multipart/alternative; boundary=94eb2c190cc6370f06054535da6a
+Date: Tue, 3 Jan 2017 19:41:16 +0000 (GMT)
+Authentication-Results: mx.gnu.org; dkim=pass header.i=@@gnu.org; spf=pass
+Message-ID: <abcdef@@gnu.org>
+From: John Doe <jdoe@@gnu.org>
+To: Jane Smith <jsmith@@gnu.org>
+
+# A portable (non-gnu) variation:
+#   sed -e :a -e '$!N;s/\n  */ /;ta' -e 'P;D'
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
 
 @node Centering lines
 @section Centering Lines
@@ -3284,7 +4260,7 @@ technique.
 
 @group
 # delete leading and trailing spaces
-y/@kbd{tab}/ /
+y/@kbd{@key{TAB}}/ /
 s/^ *//
 s/ *$//
 @end group
@@ -3683,7 +4659,7 @@ A successful match means the @var{PATTERN} was repeated twice in succession.
 The word-boundery expression (@samp{\b}) at both ends ensures partial
 words are not matched (e.g. @samp{the then} is not a desired match).
 @c Thanks to Jim for pointing this out in
-@c http://lists.gnu.org/archive/html/sed-devel/2016-12/msg00041.html
+@c https://lists.gnu.org/archive/html/sed-devel/2016-12/msg00041.html
 
 @item
 The @option{-E} option enables extended regular expression syntax, alleviating
@@ -3747,7 +4723,7 @@ consecutive words spanning multiple lines, and the @code{b} command for
 branching.
 @xref{Multiline techniques} and @ref{Branching and flow control}.
 
-These (somewhat contrived) examples deal with formatting and wrapping
+This (somewhat contrived) example deal with formatting and wrapping
 lines of text of the following input file:
 
 @example
@@ -3764,13 +4740,58 @@ of foolishness,
 @end group
 @end example
 
-The following command will wrap lines at 40 characters:
+@exdent The following sed program wraps lines at 40 characters:
 @codequoteundirected on
 @codequotebacktick on
 @example
 @group
-$ sed -E ':x @{N ; s/\n/ /g ; s/(.@{40,40@})/\1\n/ ; /\n/!bx ; P ; D@}' \
-      two-cities-mix.txt
+$ cat wrap40.sed
+# outer loop
+:x
+
+# Appead a newline followed by the next input line to the pattern buffer
+N
+
+# Remove all newlines from the pattern buffer
+s/\n/ /g
+
+
+# Inner loop
+:y
+
+# Add a newline after the first 40 characters
+s/(.@{40,40@})/\1\n/
+
+# If there is a newline in the pattern buffer
+# (i.e. the previous substitution added a newline)
+/\n/ @{
+    # There are newlines in the pattern buffer -
+    # print the content until the first newline.
+    P
+
+   # Remove the printed characters and the first newline
+   s/.*\n//
+
+   # branch to label 'y' - repeat inner loop
+   by
+ @}
+
+# No newlines in the pattern buffer - Branch to label 'x' (outer loop)
+# and read the next input line
+bx
+@end group
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+
+
+@exdent The wrapped output:
+@codequoteundirected on
+@codequotebacktick on
+@example
+@group
+$ sed -E -f wrap40.sed two-cities-mix.txt
 It was the best of times, it was the wor
 st of times, it was the age of wisdom, i
 t was the age of foolishness,
@@ -3779,55 +4800,6 @@ t was the age of foolishness,
 @codequoteundirected off
 @codequotebacktick off
 
-The following command will split lines by comma character:
-@codequoteundirected on
-@codequotebacktick on
-@example
-@group
-$ sed -E ':x @{N ; s/\n/ /g ; s/,/,\n/ ; /\n/!bx ; s/^ *// ; P ; D@}' \
-      two-cities-mix.txt
-It was the best of times,
-it was the worst of times,
-it was the age of wisdom,
-it was the age of foolishness,
-@end group
-@end example
-@codequoteundirected off
-@codequotebacktick off
-
-Both examples use similar construct:
-
-@itemize @bullet
-
-@item
-The @samp{:x} is a label. It will be used later by the @command{b} command
-to jump to the beginning of the @command{sed} program without starting
-a new cycle.
-
-@item
-The @samp{N} command reads the next line from the input file, and appends
-it to the existing content of the pattern space (with a newline preceding it).
-
-@item
-The first @samp{s/\n/ /g} command replaces all newlines with spaces, discarding
-the line structure of the input file.
-
-@item
-The second @samp{s///} command adds newlines based on the desired pattern
-(after 40 characters in the first example, after comma character in the second
-example).
-
-@item
-The @samp{/\n/!bx} command searches for a newline in the pattern space
-(@samp{/n/}), and if it is @emph{not} found (@samp{!}), branches (=jumps)
-to the previously defined label @samp{x}. This will cause @command{sed}
-to read the next line without processing any further commands in this cycle.
-
-@item
-If a newline is found in the pattern space, @command{P} is used to print
-up to the newline (that is - the newly structured line) then @command{D}
-deletes the pattern space up to the newline, and starts a new cycle.
-@end itemize
 
 
 
@@ -3838,7 +4810,7 @@ This one begins a series of totally useless (yet interesting)
 scripts emulating various Unix commands.  This, in particular,
 is a @command{tac} workalike.
 
-Note that on implementations other than @acronym{GNU} @command{sed}
+Note that on implementations other than GNU @command{sed}
 this script might easily overflow internal buffers.
 
 @c start-------------------------------------------
@@ -3869,7 +4841,7 @@ h
 @section Numbering Lines
 
 This script replaces @samp{cat -n}; in fact it formats its output
-exactly like @acronym{GNU} @command{cat} does.
+exactly like GNU @command{cat} does.
 
 Of course this is completely useless and for two reasons:  first,
 because somebody else did it in C, second, because the following
@@ -4108,7 +5080,7 @@ of commenting @command{sed} scripts.
 
 @group
 # Convert words to a's
-s/[ @kbd{tab}][ @kbd{tab}]*/ /g
+s/[ @kbd{@key{TAB}}][ @kbd{@key{TAB}}]*/ /g
 s/^/ /
 s/ [^ ][^ ]*/a /g
 s/ //g
@@ -4485,7 +5457,7 @@ bx
 @node Limitations
 @chapter @value{SSED}'s Limitations and Non-limitations
 
-@cindex @acronym{GNU} extensions, unlimited line length
+@cindex GNU extensions, unlimited line length
 @cindex Portability, line length limitations
 For those who want to write portable @command{sed} scripts,
 be aware that some implementations have been known to
@@ -4505,24 +5477,35 @@ the size of the buffer that can be processed by certain patterns.
 @node Other Resources
 @chapter Other Resources for Learning About @command{sed}
 
+For up to date information about @value{SSED} please
+visit @uref{https://www.gnu.org/software/sed/}.
+
+Send general questions and suggestions to @email{sed-devel@@gnu.org}.
+Visit the mailing list archives for past discussions at
+@uref{https://lists.gnu.org/archive/html/sed-devel/}.
+
 @cindex Additional reading about @command{sed}
-In addition to several books that have been written about @command{sed}
-(either specifically or as chapters in books which discuss
-shell programming), one can find out more about @command{sed}
-(including suggestions of a few books) from the FAQ
-for the @code{sed-users} mailing list, available from:
-@display
-@uref{http://sed.sourceforge.net/sedfaq.html}
-@end display
+The following resources provide information about @command{sed}
+(both @value{SSED} and other variations). Note these not maintained by
+@value{SSED} developers.
 
-Also of interest are
-@uref{http://www.student.northpark.edu/pemente/sed/index.htm}
-and @uref{http://sed.sf.net/grabbag},
-which include @command{sed} tutorials and other @command{sed}-related goodies.
+@itemize @bullet
 
-The @code{sed-users} mailing list itself maintained by Sven Guckes.
-To subscribe, visit @uref{http://groups.yahoo.com} and search
-for the @code{sed-users} mailing list.
+@item
+sed @code{$HOME}: @uref{http://sed.sf.net}
+
+@item
+sed FAQ: @uref{http://sed.sf.net/sedfaq.html}
+
+@item
+seder's grabbag: @uref{http://sed.sf.net/grabbag}
+
+@item
+The @code{sed-users} mailing list maintained by Sven Guckes:
+@uref{http://groups.yahoo.com/group/sed-users/}
+(note this is @emph{not} the @value{SSED} mailing list).
+
+@end itemize
 
 @node Reporting Bugs
 @chapter Reporting Bugs
@@ -4607,7 +5590,7 @@ scripts that rely on the traditional behavior, or to set
 the @code{POSIXLY_CORRECT} variable to a non-empty value.
 
 @item Regex syntax clashes (problems with backslashes)
-@cindex @acronym{GNU} extensions, to basic regular expressions
+@cindex GNU extensions, to basic regular expressions
 @cindex Non-bugs, regex syntax clashes
 @command{sed} uses the @sc{posix} basic regular expression syntax.  According to
 the standard, the meaning of some escape sequences is undefined in
@@ -4615,7 +5598,7 @@ this syntax;  notable in the case of @command{sed} are @code{\|},
 @code{\+}, @code{\?}, @code{\`}, @code{\'}, @code{\<},
 @code{\>}, @code{\b}, @code{\B}, @code{\w}, and @code{\W}.
 
-As in all @acronym{GNU} programs that use @sc{posix} basic regular
+As in all GNU programs that use @sc{posix} basic regular
 expressions, @command{sed} interprets these escape sequences as special
 characters.  So, @code{x\+} matches one or more occurrences of @samp{x}.
 @code{abc\|def} matches either @samp{abc} or @samp{def}.
@@ -4626,19 +5609,19 @@ assumption that @code{\|} and @code{\+} match the literal characters
 @code{|} and @code{+}.  Such scripts must be modified by removing the
 spurious backslashes if they are to be used with modern implementations
 of @command{sed}, like
-@acronym{GNU} @command{sed}.
+GNU @command{sed}.
 
 On the other hand, some scripts use s|abc\|def||g to remove occurrences
 of @emph{either} @code{abc} or @code{def}.  While this worked until
 @command{sed} 4.0.x, newer versions interpret this as removing the
 string @code{abc|def}.  This is again undefined behavior according to
-@acronym{POSIX}, and this interpretation is arguably more robust: older
+POSIX, and this interpretation is arguably more robust: older
 @command{sed}s, for example, required that the regex matcher parsed
 @code{\/} as @code{/} in the common case of escaping a slash, which is
 again undefined behavior; the new behavior avoids this, and this is good
 because the regex matcher is only partially under our control.
 
-@cindex @acronym{GNU} extensions, special escapes
+@cindex GNU extensions, special escapes
 In addition, this version of @command{sed} supports several escape characters
 (some of which are multi-character) to insert non-printable characters
 in scripts (@code{\a}, @code{\c}, @code{\d}, @code{\o}, @code{\r},
@@ -4670,7 +5653,7 @@ in a read-only directory, and will break hard or symbolic links when
 
 @item @code{0a} does not work (gives an error)
 @cindex @code{0} address
-@cindex @acronym{GNU} extensions, @code{0} address
+@cindex GNU extensions, @code{0} address
 @cindex Non-bugs, @code{0} address
 
 There is no line 0.  0 is a special address that is only used to treat
@@ -4691,9 +5674,9 @@ uses the current locale's collation order -- in C parlance, that means using
 case-insensitive collation order, others don't.
 
 Another problem is that @code{[a-z]} tries to use collation symbols.
-This only happens if you are on the @acronym{GNU} system, using
-@acronym{GNU} libc's regular expression matcher instead of compiling the
-one supplied with @acronym{GNU} sed.  In a Danish locale, for example,
+This only happens if you are on the GNU system, using
+GNU libc's regular expression matcher instead of compiling the
+one supplied with GNU sed.  In a Danish locale, for example,
 the regular expression @code{^[a-z]$} matches the string @samp{aa},
 because this is a single collating symbol that comes after @samp{a}
 and before @samp{b}; @samp{ll} behaves similarly in Spanish

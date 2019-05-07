@@ -4,7 +4,7 @@
 # a single-byte character, or the second byte of a multibyte
 # character.
 
-# Copyright (C) 2016 Free Software Foundation, Inc.
+# Copyright (C) 2016-2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 . "${srcdir=.}/testsuite/init.sh"; path_prepend_ ./sed
 print_ver_ sed
 
@@ -26,8 +26,6 @@ require_ja_shiftjis_locale_
 
 # Ensure the implementation is not buggy (skip otherwise)
 require_valid_ja_shiftjis_locale_ "$LOCALE_JA_SJIS"
-
-fail=0
 
 # This test uses two characters:
 # Unicode Character 'KATAKANA LETTER ZE' (U+30BC)

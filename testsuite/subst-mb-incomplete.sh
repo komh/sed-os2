@@ -3,7 +3,7 @@
 # performing a substitution with a replacement string containing an
 # incomplete multi-byte character.
 
-# Copyright (C) 2015-2016 Free Software Foundation, Inc.
+# Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 . "${srcdir=.}/testsuite/init.sh"; path_prepend_ ./sed
 print_ver_ sed
 
@@ -25,7 +25,6 @@ require_en_utf8_locale_
 echo > in || framework_failure_
 printf '\233\375\200\n' > exp-out || framework_failure_
 
-fail=0
 LC_ALL=en_US.utf8 sed $(printf 's/^/\\L\233\375\\\200/') in > out 2> err
 
 compare exp-out out || fail=1

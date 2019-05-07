@@ -1,7 +1,7 @@
 #!/bin/sh
 # Test slash following an incomplete multibyte character
 
-# Copyright (C) 2016 Free Software Foundation, Inc.
+# Copyright (C) 2016-2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,13 +14,11 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 . "${srcdir=.}/testsuite/init.sh"; path_prepend_ ./sed
 print_ver_ sed
 
 require_en_utf8_locale_
-
-fail=0
 
 # before sed-4.3, a slash following an incomplete multibyte character
 # would be ignored during program compilation, leading to an error.

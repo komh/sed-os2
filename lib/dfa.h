@@ -1,5 +1,5 @@
 /* dfa.h - declarations for GNU deterministic regexp compiler
-   Copyright (C) 1988, 1998, 2007, 2009-2016 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1998, 2007, 2009-2018 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,12 +21,6 @@
 #include <regex.h>
 #include <stdbool.h>
 #include <stddef.h>
-
-#if 3 <= __GNUC__
-# define _GL_ATTRIBUTE_MALLOC __attribute__ ((__malloc__))
-#else
-# define _GL_ATTRIBUTE_MALLOC
-#endif
 
 struct localeinfo; /* See localeinfo.h.  */
 

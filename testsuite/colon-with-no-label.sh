@@ -1,7 +1,7 @@
 #!/bin/sh
 # Verify that a ":" command with no label is now rejected.
 
-# Copyright (C) 2015-2016 Free Software Foundation, Inc.
+# Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,14 +14,12 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 . "${srcdir=.}/testsuite/init.sh"; path_prepend_ ./sed
 print_ver_ sed
 
 echo 'sed: -e expression #1, char 1: ":" lacks a label' > exp-err \
   || framework_failure_
-
-fail=0
 
 # Before sed-4.3, sed would mistakenly accept a ":" with no following
 # label name.

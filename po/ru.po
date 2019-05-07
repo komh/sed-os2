@@ -4,13 +4,13 @@
 #
 # Const Kaplinsky <const@ce.cctpu.edu.ru>, 1998.
 # Pavel Maryanov <acid_jack@ukr.net>, 2004, 2008.
-# Yuri Kozlov <yuray@komyakino.ru>, 2013, 2016.
+# Yuri Kozlov <yuray@komyakino.ru>, 2013, 2016, 2018.
 msgid ""
 msgstr ""
-"Project-Id-Version: sed 4.2.2.177\n"
+"Project-Id-Version: sed 4.4.104\n"
 "Report-Msgid-Bugs-To: bug-gnu-utils@gnu.org\n"
-"POT-Creation-Date: 2016-12-30 00:59-0800\n"
-"PO-Revision-Date: 2016-12-06 19:25+0300\n"
+"POT-Creation-Date: 2018-12-20 22:03-0800\n"
+"PO-Revision-Date: 2018-04-01 08:46+0300\n"
 "Last-Translator: Yuri Kozlov <yuray@komyakino.ru>\n"
 "Language-Team: Russian <gnu@d07.ru>\n"
 "Language: ru\n"
@@ -20,9 +20,9 @@ msgstr ""
 "X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 1.5\n"
+"X-Generator: Lokalize 2.0\n"
 
-#: lib/closeout.c:112
+#: lib/closeout.c:122
 msgid "write error"
 msgstr "ошибка записи"
 
@@ -31,107 +31,80 @@ msgstr "ошибка записи"
 msgid "preserving permissions for %s"
 msgstr "сохранение прав доступа для %s"
 
-#: lib/dfa.c:1025 lib/dfa.c:1028 lib/dfa.c:1047 lib/dfa.c:1057 lib/dfa.c:1070
-#: lib/dfa.c:1098 lib/dfa.c:1107 lib/dfa.c:1110 lib/dfa.c:1115 lib/dfa.c:1137
-#: lib/dfa.c:1140
+#: lib/dfa.c:970
 msgid "unbalanced ["
 msgstr "несбалансированная ["
 
-#: lib/dfa.c:1083
+#: lib/dfa.c:1091
 msgid "invalid character class"
 msgstr "неправильный класс символов"
 
-#: lib/dfa.c:1206
+#: lib/dfa.c:1217
 msgid "character class syntax is [[:space:]], not [:space:]"
 msgstr "синтаксис класса символов: [[:space:]], а не [:space:]"
 
-#: lib/dfa.c:1275
+#: lib/dfa.c:1284
 msgid "unfinished \\ escape"
 msgstr "незавершённая \\ экранирующая последовательность"
 
-#: lib/dfa.c:1436
+#: lib/dfa.c:1445
 msgid "invalid content of \\{\\}"
 msgstr "неправильное содержимое в \\{\\}"
 
-#: lib/dfa.c:1439
+#: lib/dfa.c:1448
 msgid "regular expression too big"
 msgstr "регулярное выражение слишком большое"
 
-#: lib/dfa.c:1853
+#: lib/dfa.c:1863
 msgid "unbalanced ("
 msgstr "несбалансированная ("
 
-#: lib/dfa.c:1980
+#: lib/dfa.c:1981
 msgid "no syntax specified"
 msgstr "не указан синтаксис"
 
-#: lib/dfa.c:1988
+#: lib/dfa.c:1992
 msgid "unbalanced )"
 msgstr "несбалансированная )"
 
-#: lib/error.c:191
+#: lib/error.c:195
 msgid "Unknown system error"
 msgstr "Неизвестная системная ошибка"
 
-#: lib/getopt.c:575 lib/getopt.c:604
+#: lib/getopt.c:278
 #, c-format
-msgid "%s: option '%s' is ambiguous; possibilities:"
-msgstr "%s: двусмысленный параметр «%s»; возможные варианты:"
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: двусмысленный параметр «%s%s»\n"
 
-#: lib/getopt.c:619
+#: lib/getopt.c:284
 #, c-format
-msgid "%s: option '%s' is ambiguous\n"
-msgstr "%s: двусмысленный параметр «%s»\n"
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: двусмысленный параметр «%s%s»; возможные варианты:"
 
-#: lib/getopt.c:654 lib/getopt.c:658
+#: lib/getopt.c:319
 #, c-format
-msgid "%s: option '--%s' doesn't allow an argument\n"
-msgstr "%s: у параметра «--%s» не может быть аргумента\n"
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: нераспознанный параметр «%s%s»\n"
 
-#: lib/getopt.c:667 lib/getopt.c:672
+#: lib/getopt.c:345
 #, c-format
-msgid "%s: option '%c%s' doesn't allow an argument\n"
-msgstr "%s: у параметра «%c%s» не может быть аргумента\n"
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: для параметра «%s%s» не может быть аргумента\n"
 
-#: lib/getopt.c:715 lib/getopt.c:734
+#: lib/getopt.c:360
 #, c-format
-msgid "%s: option '--%s' requires an argument\n"
-msgstr "%s: для параметра «--%s» требуется аргумент\n"
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: для параметра «%s%s» требуется аргумент\n"
 
-#: lib/getopt.c:772 lib/getopt.c:775
-#, c-format
-msgid "%s: unrecognized option '--%s'\n"
-msgstr "%s: нераспознанный параметр «--%s»\n"
-
-#: lib/getopt.c:783 lib/getopt.c:786
-#, c-format
-msgid "%s: unrecognized option '%c%s'\n"
-msgstr "%s: нераспознанный параметр «%c%s»\n"
-
-#: lib/getopt.c:835 lib/getopt.c:838
+#: lib/getopt.c:621
 #, c-format
 msgid "%s: invalid option -- '%c'\n"
 msgstr "%s: недопустимый параметр — «%c»\n"
 
-#: lib/getopt.c:891 lib/getopt.c:908 lib/getopt.c:1118 lib/getopt.c:1136
+#: lib/getopt.c:636 lib/getopt.c:682
 #, c-format
 msgid "%s: option requires an argument -- '%c'\n"
 msgstr "%s: для параметра требуется аргумент — «%c»\n"
-
-#: lib/getopt.c:964 lib/getopt.c:980
-#, c-format
-msgid "%s: option '-W %s' is ambiguous\n"
-msgstr "%s: параметр «-W %s» неоднозначен\n"
-
-#: lib/getopt.c:1004 lib/getopt.c:1022
-#, c-format
-msgid "%s: option '-W %s' doesn't allow an argument\n"
-msgstr "%s: с параметром «-W %s» нельзя использовать аргумент\n"
-
-#: lib/getopt.c:1043 lib/getopt.c:1061
-#, c-format
-msgid "%s: option '-W %s' requires an argument\n"
-msgstr "%s: для параметра «-W %s» требуется аргумент\n"
 
 #: lib/obstack.c:338 lib/obstack.c:340 lib/xalloc-die.c:34
 msgid "memory exhausted"
@@ -156,13 +129,13 @@ msgstr "память исчерпана"
 #. for your locale.
 #.
 #. If you don't know what to put here, please see
-#. <http://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
+#. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
 #. and use glyphs suitable for your language.
-#: lib/quotearg.c:354
+#: lib/quotearg.c:362
 msgid "`"
 msgstr "«"
 
-#: lib/quotearg.c:355
+#: lib/quotearg.c:363
 msgid "'"
 msgstr "»"
 
@@ -234,7 +207,7 @@ msgstr "Регулярное выражение слишком большое"
 msgid "Unmatched ) or \\)"
 msgstr "Непарный символ ) или \\)"
 
-#: lib/regcomp.c:687
+#: lib/regcomp.c:688
 msgid "No previous regular expression"
 msgstr "Нет предыдущего регулярного выражения"
 
@@ -243,12 +216,12 @@ msgstr "Нет предыдущего регулярного выражения"
 msgid "setting permissions for %s"
 msgstr "установка прав доступа для %s"
 
-#: lib/version-etc.c:74
+#: lib/version-etc.c:73
 #, c-format
 msgid "Packaged by %s (%s)\n"
 msgstr "Упакован %s (%s)\n"
 
-#: lib/version-etc.c:77
+#: lib/version-etc.c:76
 #, c-format
 msgid "Packaged by %s\n"
 msgstr "Упакован %s\n"
@@ -256,23 +229,23 @@ msgstr "Упакован %s\n"
 #. TRANSLATORS: Translate "(C)" to the copyright symbol
 #. (C-in-a-circle), if this symbol is available in the user's
 #. locale.  Otherwise, do not translate "(C)"; leave it as-is.
-#: lib/version-etc.c:84
+#: lib/version-etc.c:83
 msgid "(C)"
 msgstr "©"
 
-#: lib/version-etc.c:86
+#: lib/version-etc.c:85
 msgid ""
 "\n"
-"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl."
+"License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl."
 "html>.\n"
 "This is free software: you are free to change and redistribute it.\n"
 "There is NO WARRANTY, to the extent permitted by law.\n"
 "\n"
 msgstr ""
 "\n"
-"Лицензия GPLv3+: GNU GPL версии 3 или новее <http://gnu.org/licenses/gpl."
+"Лицензия GPLv3+: GNU GPL версии 3 или новее <https://gnu.org/licenses/gpl."
 "html>\n"
-"Это свободное ПО: вы можете продавать и распространять его.\n"
+"Это свободное ПО: вы можете изменять и распространять его.\n"
 "Нет НИКАКИХ ГАРАНТИЙ до степени, разрешённой законом.\n"
 "\n"
 
@@ -410,12 +383,12 @@ msgstr "Домашняя страница %s: <%s>\n"
 
 #: lib/version-etc.c:253
 #, c-format
-msgid "%s home page: <http://www.gnu.org/software/%s/>\n"
-msgstr "Домашняя страница %s: <http://www.gnu.org/software/%s/>\n"
+msgid "%s home page: <https://www.gnu.org/software/%s/>\n"
+msgstr "Домашняя страница %s: <https://www.gnu.org/software/%s/>\n"
 
 #: lib/version-etc.c:256
-msgid "General help using GNU software: <http://www.gnu.org/gethelp/>\n"
-msgstr "Справка по работе с программами GNU: <http://www.gnu.org/gethelp/>\n"
+msgid "General help using GNU software: <https://www.gnu.org/gethelp/>\n"
+msgstr "Справка по работе с программами GNU: <https://www.gnu.org/gethelp/>\n"
 
 #: sed/compile.c:146
 msgid "multiple `!'s"
@@ -465,226 +438,242 @@ msgstr "отсутствует команда"
 msgid "command only uses one address"
 msgstr "команда использует только один адрес"
 
-#: sed/compile.c:164
+#: sed/compile.c:165
 msgid "unterminated address regex"
 msgstr "незавершенное адресное регулярное выражение"
 
-#: sed/compile.c:165
+#: sed/compile.c:166
 msgid "unterminated `s' command"
 msgstr "незавершенная команда `s'"
 
-#: sed/compile.c:166
+#: sed/compile.c:167
 msgid "unterminated `y' command"
 msgstr "незавершенная команда `y'"
 
-#: sed/compile.c:167
+#: sed/compile.c:168
 msgid "unknown option to `s'"
 msgstr "неизвестный модификатор к `s'"
 
-#: sed/compile.c:169
+#: sed/compile.c:170
 msgid "multiple `p' options to `s' command"
 msgstr "несколько модификаторов `p' с командой `s'"
 
-#: sed/compile.c:171
+#: sed/compile.c:172
 msgid "multiple `g' options to `s' command"
 msgstr "несколько модификаторов `g' с командой `s'"
 
-#: sed/compile.c:173
+#: sed/compile.c:174
 msgid "multiple number options to `s' command"
 msgstr "несколько числовых модификаторов с командой `s'"
 
-#: sed/compile.c:175
+#: sed/compile.c:176
 msgid "number option to `s' command may not be zero"
 msgstr "числовой модификатор для команды `s' не может быть нулевым"
 
-#: sed/compile.c:177
+#: sed/compile.c:178
 msgid "strings for `y' command are different lengths"
 msgstr "строки для команды `y' имеют разную длину"
 
-#: sed/compile.c:179
+#: sed/compile.c:180
 msgid "delimiter character is not a single-byte character"
 msgstr "символ-разделитель не является однобайтовым символом"
 
-#: sed/compile.c:181
+#: sed/compile.c:182
 msgid "expected newer version of sed"
 msgstr "ожидалась более новая версия sed"
 
-#: sed/compile.c:183
+#: sed/compile.c:184
 msgid "invalid usage of line address 0"
 msgstr "недопустимое использование строки адреса 0"
 
-#: sed/compile.c:184
+#: sed/compile.c:185
 #, c-format
 msgid "unknown command: `%c'"
 msgstr "неизвестная команда: `%c'"
 
-#: sed/compile.c:186
+#: sed/compile.c:187
 msgid "incomplete command"
 msgstr "незавершённая команда"
 
-#: sed/compile.c:188
+#: sed/compile.c:189
 msgid "\":\" lacks a label"
 msgstr "у «:» отсутствует метка"
 
-#: sed/compile.c:190
+#: sed/compile.c:191
 msgid "recursive escaping after \\c not allowed"
 msgstr "рекурсивное экранирование после \\c запрещено"
 
-#: sed/compile.c:213
+#: sed/compile.c:193
+msgid "e/r/w commands disabled in sandbox mode"
+msgstr ""
+
+#: sed/compile.c:215
 #, c-format
 msgid "%s: file %s line %lu: %s\n"
 msgstr "%s: файл %s строка %lu: %s\n"
 
-#: sed/compile.c:216
+#: sed/compile.c:218
 #, c-format
 msgid "%s: -e expression #%lu, char %lu: %s\n"
 msgstr "%s: -e выражение #%lu, символ %lu: %s\n"
 
-#: sed/compile.c:1639
+#: sed/compile.c:1607
 #, c-format
 msgid "can't find label for jump to `%s'"
 msgstr "невозможно найти метку для перехода к `%s'"
 
-#: sed/execute.c:264 sed/execute.c:281
+#: sed/execute.c:253 sed/execute.c:270
 #, c-format
 msgid "case conversion produced an invalid character"
 msgstr "при преобразовании регистра получился некорректный символ"
 
-#: sed/execute.c:575
+#: sed/execute.c:561
 #, c-format
 msgid "%s: can't read %s: %s\n"
 msgstr "%s: невозможно прочитать %s: %s\n"
 
-#: sed/execute.c:600
+#: sed/execute.c:587
 #, c-format
 msgid "couldn't edit %s: is a terminal"
 msgstr "невозможно редактировать %s: это терминал"
 
-#: sed/execute.c:605
+#: sed/execute.c:592
 #, c-format
 msgid "couldn't edit %s: not a regular file"
 msgstr "невозможно редактировать %s: это не обычный файл"
 
-#: sed/execute.c:616
+#: sed/execute.c:603
 #, c-format
 msgid "%s: warning: failed to set default file creation context to %s: %s"
 msgstr ""
 "%s: предупреждение: не удалось установить контекст безопасности файла по "
 "умолчанию в %s: %s"
 
-#: sed/execute.c:624
+#: sed/execute.c:611
 #, c-format
 msgid "%s: warning: failed to get security context of %s: %s"
 msgstr "%s: предупреждение: не удалось получить контекст безопасности %s: %s"
 
-#: sed/execute.c:643 sed/utils.c:178
+#: sed/execute.c:630 sed/utils.c:188
 #, c-format
 msgid "couldn't open temporary file %s: %s"
 msgstr "невозможно открыть временный файл %s: %s"
 
-#: sed/execute.c:1158 sed/execute.c:1368
+#: sed/execute.c:1167 sed/execute.c:1366
 msgid "error in subprocess"
 msgstr "ошибка в подпроцессе"
 
-#: sed/execute.c:1160
+#: sed/execute.c:1169
 msgid "option `e' not supported"
-msgstr "опция `e' не поддерживается"
+msgstr "параметр «e» не поддерживается"
 
-#: sed/execute.c:1349
+#: sed/execute.c:1347
 msgid "`e' command not supported"
-msgstr "команда `e' не поддерживается"
+msgstr "команда «e» не поддерживается"
 
-#: sed/execute.c:1675
+#: sed/execute.c:1662
 msgid "no input files"
 msgstr "отсутствуют входные файлы"
 
-#: sed/regexp.c:38
+#: sed/regexp.c:40
 msgid "no previous regular expression"
 msgstr "нет предыдущего регулярного выражения"
 
-#: sed/regexp.c:138
+#: sed/regexp.c:125
 #, c-format
 msgid "invalid reference \\%d on `s' command's RHS"
-msgstr "недопустимая ссылка \\%d на RHS команды `s'"
+msgstr "недопустимая ссылка \\%d на RHS команды «s»"
 
-#: sed/sed.c:35
+#: sed/regexp.c:196
+msgid "regex input buffer length larger than INT_MAX"
+msgstr "длина входного буфера регулярного выражения больше INT_MAX"
+
+#: sed/sed.c:36
 msgid "Jay Fenlason"
 msgstr "Джей Фенласон (Jay Fenlason)"
 
-#: sed/sed.c:36
+#: sed/sed.c:37
 msgid "Tom Lord"
 msgstr "Том Лорд (Tom Lord)"
 
-#: sed/sed.c:37
+#: sed/sed.c:38
 msgid "Ken Pizzini"
 msgstr "Кен Пиццини (Ken Pizzini)"
 
-#: sed/sed.c:38
+#: sed/sed.c:39
 msgid "Paolo Bonzini"
 msgstr "Паоло Бонзини (Paolo Bonzini)"
 
-#: sed/sed.c:113
+#: sed/sed.c:40
+msgid "Jim Meyering"
+msgstr ""
+
+#: sed/sed.c:41
+msgid "Assaf Gordon"
+msgstr ""
+
+#: sed/sed.c:124
 #, c-format
 msgid ""
-"GNU sed home page: <http://www.gnu.org/software/sed/>.\n"
-"General help using GNU software: <http://www.gnu.org/gethelp/>.\n"
+"GNU sed home page: <https://www.gnu.org/software/sed/>.\n"
+"General help using GNU software: <https://www.gnu.org/gethelp/>.\n"
 msgstr ""
-"Домашняя страница GNU sed: <http://www.gnu.org/software/sed/>.\n"
-"Справка по работе с программами GNU: <http://www.gnu.org/gethelp/>.\n"
+"Домашняя страница GNU sed: <https://www.gnu.org/software/sed/>.\n"
+"Справка по работе с программами GNU: <https://www.gnu.org/gethelp/>.\n"
 
-#: sed/sed.c:120
+#: sed/sed.c:130
 #, c-format
 msgid "E-mail bug reports to: <%s>.\n"
 msgstr "Сообщения об ошибках отправляйте на <%s>.\n"
 
-#: sed/sed.c:129
-msgid ""
-"  -R, --regexp-perl\n"
-"                 use Perl 5's regular expressions syntax in the script.\n"
-msgstr ""
-"  -R, --regexp-perl\n"
-"                 использование в скрипте синтаксиса регулярных выражений "
-"Perl 5.\n"
-
-#: sed/sed.c:134
+#: sed/sed.c:138
 #, c-format
 msgid ""
 "Usage: %s [OPTION]... {script-only-if-no-other-script} [input-file]...\n"
 "\n"
 msgstr ""
-"Использование: %s [ОПЦИЯ]... {только-скрипт-если-нет-другого-скрипта} "
-"[входной-файл]...\n"
+"Использование: %s [ПАРАМЕТР]… {только-сценарий-если-нет-другого-сценария}\n"
+"               [входной-файл]…\n"
 "\n"
 
-#: sed/sed.c:138
+#: sed/sed.c:142
 #, c-format
 msgid ""
 "  -n, --quiet, --silent\n"
 "                 suppress automatic printing of pattern space\n"
 msgstr ""
 "  -n, --quiet, --silent\n"
-"                 не выводить автоматически промежутки\n"
+"                 выключить автоматическую печать образца\n"
 
-#: sed/sed.c:140
+#: sed/sed.c:144
+#, fuzzy, c-format
+msgid ""
+"      --debug\n"
+"                 annotate program execution\n"
+msgstr ""
+"  --posix\n"
+"                 отключить все расширения GNU\n"
+
+#: sed/sed.c:146
 #, c-format
 msgid ""
 "  -e script, --expression=script\n"
 "                 add the script to the commands to be executed\n"
 msgstr ""
-"  -e script, --expression=script\n"
-"                 добавление скрипта в исполняемые команды\n"
+"  -e script, --expression=сценарий\n"
+"                 добавить сценарий в исполняемые команды\n"
 
-#: sed/sed.c:142
+#: sed/sed.c:148
 #, c-format
 msgid ""
 "  -f script-file, --file=script-file\n"
 "                 add the contents of script-file to the commands to be "
 "executed\n"
 msgstr ""
-"  -f script-file, --file=script-file\n"
-"                 добавление содержимого файла-скрипта в исполняемые команды\n"
+"  -f script-file, --file=файл-сценария\n"
+"                 добавить содержимое файла-сценария в исполняемые команды\n"
 
-#: sed/sed.c:146
+#: sed/sed.c:152
 #, c-format
 msgid ""
 "  --follow-symlinks\n"
@@ -693,17 +682,17 @@ msgstr ""
 "  --follow-symlinks\n"
 "                 переходить по символьным ссылкам при обработке на месте\n"
 
-#: sed/sed.c:149
+#: sed/sed.c:155
 #, c-format
 msgid ""
 "  -i[SUFFIX], --in-place[=SUFFIX]\n"
 "                 edit files in place (makes backup if SUFFIX supplied)\n"
 msgstr ""
 "  -i[СУФФИКС], --in-place[=СУФФИКС]\n"
-"                 правка файлов на месте (создаёт копию, если указан "
+"                 править файлы на месте (создаёт копию, если указан "
 "СУФФИКС)\n"
 
-#: sed/sed.c:153
+#: sed/sed.c:158
 #, c-format
 msgid ""
 "  -b, --binary\n"
@@ -711,28 +700,28 @@ msgid ""
 "specially)\n"
 msgstr ""
 "  -b, --binary\n"
-"                 открывать файлы в бинарном режиме (CR+LF не "
+"                 открывать файлы в двоичном режиме (CR+LF не "
 "обрабатываются)\n"
 
-#: sed/sed.c:157
+#: sed/sed.c:162
 #, c-format
 msgid ""
 "  -l N, --line-length=N\n"
 "                 specify the desired line-wrap length for the `l' command\n"
 msgstr ""
 "  -l N, --line-length=N\n"
-"                 указание желаемой длины переносимой строки для команды `l'\n"
+"                 задать желаемую длину до переноса строки для команды «l»\n"
 
-#: sed/sed.c:159
+#: sed/sed.c:164
 #, c-format
 msgid ""
 "  --posix\n"
 "                 disable all GNU extensions.\n"
 msgstr ""
 "  --posix\n"
-"                 отключение всех расширений GNU.\n"
+"                 отключить все расширения GNU\n"
 
-#: sed/sed.c:161
+#: sed/sed.c:166
 #, c-format
 msgid ""
 "  -E, -r, --regexp-extended\n"
@@ -740,10 +729,10 @@ msgid ""
 "                 (for portability use POSIX -E).\n"
 msgstr ""
 "  -E, -r, --regexp-extended\n"
-"                 использование в скрипте расширенных регулярных выражений\n"
+"                 использовать в сценарии расширенные регулярные выражения\n"
 "                 (для переносимости используйте -E (POSIX)\n"
 
-#: sed/sed.c:167
+#: sed/sed.c:169
 #, c-format
 msgid ""
 "  -s, --separate\n"
@@ -751,19 +740,20 @@ msgid ""
 "                 continuous long stream.\n"
 msgstr ""
 "  -s, --separate\n"
-"                 допущение, что файлы разделены, а не в виде одного\n"
+"                 рассматривать файлы раздельно, а не в виде одного\n"
 "                 длинного непрерывного потока\n"
 
-#: sed/sed.c:170
+#: sed/sed.c:172
 #, c-format
 msgid ""
 "      --sandbox\n"
-"                 operate in sandbox mode.\n"
+"                 operate in sandbox mode (disable e/r/w commands).\n"
 msgstr ""
 "      --sandbox\n"
 "                 работать в режиме «песочницы»\n"
+"                 (отключает команды e/r/w)\n"
 
-#: sed/sed.c:172
+#: sed/sed.c:174
 #, c-format
 msgid ""
 "  -u, --unbuffered\n"
@@ -772,10 +762,10 @@ msgid ""
 "                 the output buffers more often\n"
 msgstr ""
 "  -u, --unbuffered\n"
-"                 загрузка минимального объема данных из входных файлов\n"
-"                 и более частый сброс на диск выходных буферов\n"
+"                 загружать минимальный объём данных из входных файлов\n"
+"                 и чаще сбрасывать выходные буферы на диск\n"
 
-#: sed/sed.c:175
+#: sed/sed.c:177
 #, c-format
 msgid ""
 "  -z, --null-data\n"
@@ -784,17 +774,17 @@ msgstr ""
 "  -z, --null-data\n"
 "                 разделять строки символами NUL\n"
 
-#: sed/sed.c:177
+#: sed/sed.c:179
 #, c-format
 msgid "      --help     display this help and exit\n"
-msgstr "      --help     вывод этой справки и выход\n"
+msgstr "      --help     показать эту справку и выйти\n"
 
-#: sed/sed.c:178
+#: sed/sed.c:180
 #, c-format
 msgid "      --version  output version information and exit\n"
-msgstr "      --version  вывод информации о версии и выход\n"
+msgstr "      --version  показать информацию о версии и выйти\n"
 
-#: sed/sed.c:179
+#: sed/sed.c:181
 #, c-format
 msgid ""
 "\n"
@@ -805,28 +795,41 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Если опция -e, --expression, -f, или --file не указана, тогда первый\n"
-"необязательный аргумент берётся как скрипт sed для интерпретации. Все\n"
-"оставшиеся аргументы являются именами входных файлов; если входные\n"
+"Если не указан параметр -e, --expression, -f или --file, то в качестве\n"
+"интерпретируемого сценария sed берётся первый необязательный аргумент.\n"
+"Все оставшиеся аргументы являются именами входных файлов; если входные\n"
 "файлы не указаны, тогда читается стандартный ввод.\n"
 "\n"
 
-#: sed/utils.c:73 sed/utils.c:384
+#: sed/sed.c:373
+msgid "failed to set binary mode on STDIN"
+msgstr ""
+
+#: sed/sed.c:375
+msgid "failed to set binary mode on STDOUT"
+msgstr ""
+
+#: sed/utils.c:77 sed/utils.c:395
 #, c-format
 msgid "cannot remove %s: %s"
 msgstr "невозможно удалить %s: %s"
 
-#: sed/utils.c:136
+#: sed/utils.c:146
 #, c-format
 msgid "couldn't open file %s: %s"
 msgstr "невозможно открыть файл %s: %s"
 
-#: sed/utils.c:155
+#: sed/utils.c:165
 #, c-format
 msgid "couldn't attach to %s: %s"
 msgstr "невозможно прикрепить к %s: %s"
 
 #: sed/utils.c:192
+#, c-format
+msgid "failed to set binary mode on '%s'"
+msgstr ""
+
+#: sed/utils.c:207
 #, c-format
 msgid "couldn't write %llu item to %s: %s"
 msgid_plural "couldn't write %llu items to %s: %s"
@@ -834,25 +837,48 @@ msgstr[0] "невозможно записать %llu элемент в %s: %s"
 msgstr[1] "невозможно записать %llu элемента в %s: %s"
 msgstr[2] "невозможно записать %llu элементов в %s: %s"
 
-#: sed/utils.c:204 sed/utils.c:223
+#: sed/utils.c:219 sed/utils.c:238
 #, c-format
 msgid "read error on %s: %s"
 msgstr "ошибка чтения %s: %s"
 
-#: sed/utils.c:325
+#: sed/utils.c:336
 #, c-format
 msgid "couldn't follow symlink %s: %s"
 msgstr "невозможно перейти по символьной ссылке %s: %s"
 
-#: sed/utils.c:359
+#: sed/utils.c:370
 #, c-format
 msgid "cannot stat %s: %s"
 msgstr "невозможно выполнить stat для %s: %s"
 
-#: sed/utils.c:389
+#: sed/utils.c:400
 #, c-format
 msgid "cannot rename %s: %s"
 msgstr "невозможно переименовать %s: %s"
+
+#~ msgid ""
+#~ "  -R, --regexp-perl\n"
+#~ "                 use Perl 5's regular expressions syntax in the script.\n"
+#~ msgstr ""
+#~ "  -R, --regexp-perl\n"
+#~ "                 использовать в сценарии синтаксис регулярных выражений "
+#~ "Perl 5\n"
+
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s: у параметра «--%s» не может быть аргумента\n"
+
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s: нераспознанный параметр «--%s»\n"
+
+#~ msgid "%s: option '-W %s' is ambiguous\n"
+#~ msgstr "%s: параметр «-W %s» неоднозначен\n"
+
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s: с параметром «-W %s» нельзя использовать аргумент\n"
+
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s: для параметра «-W %s» требуется аргумент\n"
 
 #~ msgid "cannot specify modifiers on empty regexp"
 #~ msgstr "невозможно указать модификаторы в пустом регулярном выражении"

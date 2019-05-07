@@ -1,7 +1,7 @@
 #!/bin/sh
 # Test 'l' command with different widths
 
-# Copyright (C) 2016 Free Software Foundation, Inc.
+# Copyright (C) 2016-2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,11 +14,9 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 . "${srcdir=.}/testsuite/init.sh"; path_prepend_ ./sed
 print_ver_ sed
-
-fail=0
 
 #         10        20        30        40        50        60        70  75
 cat <<\EOF >in1 || framework_failure_

@@ -1,5 +1,5 @@
 /*  Functions from hack's utils library.
-    Copyright (C) 1989-2016 Free Software Foundation, Inc.
+    Copyright (C) 1989-2018 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -12,8 +12,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
+    along with this program; If not, see <https://www.gnu.org/licenses/>. */
 
 #include <config.h>
 
@@ -27,11 +26,16 @@
 #include <unistd.h>
 #include <limits.h>
 
+#include "binary-io.h"
 #include "unlocked-io.h"
 #include "utils.h"
+#include "progname.h"
 #include "fwriting.h"
+#include "xalloc.h"
 
-const char *myname;
+#if O_BINARY
+extern bool binary_mode;
+#endif
 
 /* Store information about files opened with ck_fopen
    so that error messages from ck_fread, ck_fwrite, etc. can print the
@@ -51,15 +55,15 @@ static void do_ck_fclose (FILE *fp);
 /* Print an error message and exit */
 
 void
-panic(const char *str, ...)
+panic (const char *str, ...)
 {
   va_list ap;
 
-  fprintf(stderr, "%s: ", myname);
-  va_start(ap, str);
-  vfprintf(stderr, str, ap);
-  va_end(ap);
-  putc('\n', stderr);
+  fprintf (stderr, "%s: ", program_name);
+  va_start (ap, str);
+  vfprintf (stderr, str, ap);
+  va_end (ap);
+  putc ('\n', stderr);
 
   /* Unlink the temporary files.  */
   while (open_files)
@@ -74,16 +78,22 @@ panic(const char *str, ...)
                      strerror (errno));
         }
 
+#ifdef lint
+      struct open_file *next = open_files->link;
+      free (open_files->name);
+      free (open_files);
+      open_files = next;
+#else
       open_files = open_files->link;
+#endif
     }
 
-  exit(EXIT_PANIC);
+  exit (EXIT_PANIC);
 }
 
-
 /* Internal routine to get a filename from open_files */
 static const char * _GL_ATTRIBUTE_PURE
-utils_fp_name(FILE *fp)
+utils_fp_name (FILE *fp)
 {
   struct open_file *p;
 
@@ -108,24 +118,24 @@ register_open_file (FILE *fp, const char *name)
     {
       if (fp == p->fp)
         {
-          free(p->name);
+          free (p->name);
           break;
         }
     }
   if (!p)
     {
-      p = MALLOC(1, struct open_file);
+      p = XCALLOC (1, struct open_file);
       p->link = open_files;
       open_files = p;
     }
-  p->name = ck_strdup(name);
+  p->name = xstrdup (name);
   p->fp = fp;
   p->temp = false;
 }
 
 /* Panic on failing fopen */
 FILE *
-ck_fopen(const char *name, const char *mode, int fail)
+ck_fopen (const char *name, const char *mode, int fail)
 {
   FILE *fp;
 
@@ -133,7 +143,7 @@ ck_fopen(const char *name, const char *mode, int fail)
   if (!fp)
     {
       if (fail)
-        panic(_("couldn't open file %s: %s"), name, strerror(errno));
+        panic (_("couldn't open file %s: %s"), name, strerror (errno));
 
       return NULL;
     }
@@ -144,7 +154,7 @@ ck_fopen(const char *name, const char *mode, int fail)
 
 /* Panic on failing fdopen */
 FILE *
-ck_fdopen( int fd, const char *name, const char *mode, int fail)
+ck_fdopen ( int fd, const char *name, const char *mode, int fail)
 {
   FILE *fp;
 
@@ -152,7 +162,7 @@ ck_fdopen( int fd, const char *name, const char *mode, int fail)
   if (!fp)
     {
       if (fail)
-        panic(_("couldn't attach to %s: %s"), name, strerror(errno));
+        panic (_("couldn't attach to %s: %s"), name, strerror (errno));
 
       return NULL;
     }
@@ -175,7 +185,12 @@ ck_mkstemp (char **p_filename, const char *tmpdir,
   int fd = mkostemp (template, 0);
   umask (save_umask);
   if (fd == -1)
-    panic(_("couldn't open temporary file %s: %s"), template, strerror(errno));
+    panic (_("couldn't open temporary file %s: %s"), template,
+           strerror (errno));
+#if O_BINARY
+  if (binary_mode && (set_binary_mode ( fd, O_BINARY) == -1))
+      panic (_("failed to set binary mode on '%s'"), template);
+#endif
 
   *p_filename = template;
   FILE *fp = fdopen (fd, mode);
@@ -185,29 +200,29 @@ ck_mkstemp (char **p_filename, const char *tmpdir,
 
 /* Panic on failing fwrite */
 void
-ck_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
+ck_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
-  clearerr(stream);
-  if (size && fwrite(ptr, size, nmemb, stream) != nmemb)
-    panic(ngettext("couldn't write %llu item to %s: %s",
+  clearerr (stream);
+  if (size && fwrite (ptr, size, nmemb, stream) != nmemb)
+    panic (ngettext ("couldn't write %llu item to %s: %s",
                    "couldn't write %llu items to %s: %s", nmemb),
-          (unsigned long long) nmemb, utils_fp_name(stream),
-          strerror(errno));
+          (unsigned long long) nmemb, utils_fp_name (stream),
+          strerror (errno));
 }
 
 /* Panic on failing fread */
 size_t
-ck_fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
+ck_fread (void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
-  clearerr(stream);
-  if (size && (nmemb=fread(ptr, size, nmemb, stream)) <= 0 && ferror(stream))
-    panic(_("read error on %s: %s"), utils_fp_name(stream), strerror(errno));
+  clearerr (stream);
+  if (size && (nmemb=fread (ptr, size, nmemb, stream)) <= 0 && ferror (stream))
+    panic (_("read error on %s: %s"), utils_fp_name (stream), strerror (errno));
 
   return nmemb;
 }
 
 size_t
-ck_getdelim(char **text, size_t *buflen, char buffer_delimiter, FILE *stream)
+ck_getdelim (char **text, size_t *buflen, char buffer_delimiter, FILE *stream)
 {
   ssize_t result;
   bool error;
@@ -220,26 +235,26 @@ ck_getdelim(char **text, size_t *buflen, char buffer_delimiter, FILE *stream)
     }
 
   if (error)
-    panic (_("read error on %s: %s"), utils_fp_name(stream), strerror(errno));
+    panic (_("read error on %s: %s"), utils_fp_name (stream), strerror (errno));
 
   return result;
 }
 
 /* Panic on failing fflush */
 void
-ck_fflush(FILE *stream)
+ck_fflush (FILE *stream)
 {
-  if (!fwriting(stream))
+  if (!fwriting (stream))
     return;
 
-  clearerr(stream);
-  if (fflush(stream) == EOF && errno != EBADF)
-    panic("couldn't flush %s: %s", utils_fp_name(stream), strerror(errno));
+  clearerr (stream);
+  if (fflush (stream) == EOF && errno != EBADF)
+    panic ("couldn't flush %s: %s", utils_fp_name (stream), strerror (errno));
 }
 
 /* Panic on failing fclose */
 void
-ck_fclose(FILE *stream)
+ck_fclose (FILE *stream)
 {
   struct open_file r;
   struct open_file *prev;
@@ -254,8 +269,8 @@ ck_fclose(FILE *stream)
         {
           do_ck_fclose (cur->fp);
           prev->link = cur->link;
-          free(cur->name);
-          free(cur);
+          free (cur->name);
+          free (cur);
         }
       else
         prev = cur;
@@ -267,29 +282,25 @@ ck_fclose(FILE *stream)
      last output operations might fail and it is important
      to signal this as an error (perhaps to make). */
   if (!stream)
-    {
-      do_ck_fclose (stdout);
-      do_ck_fclose (stderr);
-    }
+    do_ck_fclose (stdout);
 }
 
 /* Close a single file. */
 void
-do_ck_fclose(FILE *fp)
+do_ck_fclose (FILE *fp)
 {
-  ck_fflush(fp);
-  clearerr(fp);
+  ck_fflush (fp);
+  clearerr (fp);
 
-  if (fclose(fp) == EOF)
-    panic("couldn't close %s: %s", utils_fp_name(fp), strerror(errno));
+  if (fclose (fp) == EOF)
+    panic ("couldn't close %s: %s", utils_fp_name (fp), strerror (errno));
 }
-
 
 /* Follow symlink and panic if something fails.  Return the ultimate
    symlink target, stored in a temporary buffer that the caller should
    not free.  */
 const char *
-follow_symlink(const char *fname)
+follow_symlink (const char *fname)
 {
 #ifdef ENABLE_FOLLOW_SYMLINKS
   static char *buf1, *buf2;
@@ -301,8 +312,8 @@ follow_symlink(const char *fname)
 
   if (buf_size == 0)
     {
-      buf1 = ck_malloc (PATH_MAX + 1);
-      buf2 = ck_malloc (PATH_MAX + 1);
+      buf1 = xzalloc (PATH_MAX + 1);
+      buf2 = xzalloc (PATH_MAX + 1);
       buf_size = PATH_MAX + 1;
     }
 
@@ -318,11 +329,11 @@ follow_symlink(const char *fname)
       while ((rc = readlink (buf, buf2, buf_size)) == buf_size)
         {
           buf_size *= 2;
-          buf1 = ck_realloc (buf1, buf_size);
-          buf2 = ck_realloc (buf2, buf_size);
+          buf1 = xrealloc (buf1, buf_size);
+          buf2 = xrealloc (buf2, buf_size);
         }
       if (rc < 0)
-        panic (_("couldn't follow symlink %s: %s"), buf, strerror(errno));
+        panic (_("couldn't follow symlink %s: %s"), buf, strerror (errno));
       else
         buf2 [rc] = '\0';
 
@@ -334,8 +345,8 @@ follow_symlink(const char *fname)
           if (len + rc + 1 > buf_size)
             {
               buf_size = len + rc + 1;
-              buf1 = ck_realloc (buf1, buf_size);
-              buf2 = ck_realloc (buf2, buf_size);
+              buf1 = xrealloc (buf1, buf_size);
+              buf2 = xrealloc (buf2, buf_size);
             }
 
           /* Always store the new path in buf1.  */
@@ -356,7 +367,7 @@ follow_symlink(const char *fname)
     }
 
   if (rc < 0)
-    panic (_("cannot stat %s: %s"), buf, strerror(errno));
+    panic (_("cannot stat %s: %s"), buf, strerror (errno));
 
   return buf;
 #else
@@ -391,53 +402,7 @@ ck_rename (const char *from, const char *to, const char *unlink_if_fail)
 
 
 
-
-/* Panic on failing malloc */
-void *
-ck_malloc(size_t size)
-{
-  void *ret = calloc(1, size ? size : 1);
-  if (!ret)
-    panic("couldn't allocate memory");
-  return ret;
-}
 
-/* Panic on failing realloc */
-void *
-ck_realloc(void *ptr, size_t size)
-{
-  void *ret;
-
-  if (size == 0)
-    {
-      free(ptr);
-      return NULL;
-    }
-  if (!ptr)
-    return ck_malloc(size);
-  ret = realloc(ptr, size);
-  if (!ret)
-    panic("couldn't re-allocate memory");
-  return ret;
-}
-
-/* Return a malloc()'d copy of a string */
-char *
-ck_strdup(const char *str)
-{
-  char *ret = MALLOC(strlen(str)+1, char);
-  return strcpy(ret, str);
-}
-
-/* Return a malloc()'d copy of a block of memory */
-void *
-ck_memdup(const void *buf, size_t len)
-{
-  void *ret = ck_malloc(len);
-  return memcpy(ret, buf, len);
-}
-
-
 /* Implement a variable sized buffer of `stuff'.  We don't know what it is,
 nor do we care, as long as it doesn't mind being aligned by malloc. */
 
@@ -451,29 +416,29 @@ struct buffer
 #define MIN_ALLOCATE 50
 
 struct buffer *
-init_buffer(void)
+init_buffer (void)
 {
-  struct buffer *b = MALLOC(1, struct buffer);
-  b->b = MALLOC(MIN_ALLOCATE, char);
+  struct buffer *b = XCALLOC (1, struct buffer);
+  b->b = XCALLOC (MIN_ALLOCATE, char);
   b->allocated = MIN_ALLOCATE;
   b->length = 0;
   return b;
 }
 
 char *
-get_buffer(struct buffer const *b)
+get_buffer (struct buffer const *b)
 {
   return b->b;
 }
 
 size_t
-size_buffer(struct buffer const *b)
+size_buffer (struct buffer const *b)
 {
   return b->length;
 }
 
 static void
-resize_buffer(struct buffer *b, size_t newlen)
+resize_buffer (struct buffer *b, size_t newlen)
 {
   char *try = NULL;
   size_t alen = b->allocated;
@@ -482,29 +447,29 @@ resize_buffer(struct buffer *b, size_t newlen)
     return;
   alen *= 2;
   if (newlen < alen)
-    try = realloc(b->b, alen);	/* Note: *not* the REALLOC() macro! */
+    try = realloc (b->b, alen);	/* Note: *not* the REALLOC() macro! */
   if (!try)
     {
       alen = newlen;
-      try = REALLOC(b->b, alen, char);
+      try = REALLOC (b->b, alen, char);
     }
   b->allocated = alen;
   b->b = try;
 }
 
 char *
-add_buffer(struct buffer *b, const char *p, size_t n)
+add_buffer (struct buffer *b, const char *p, size_t n)
 {
   char *result;
   if (b->allocated - b->length < n)
-    resize_buffer(b, b->length+n);
-  result = memcpy(b->b + b->length, p, n);
+    resize_buffer (b, b->length+n);
+  result = memcpy (b->b + b->length, p, n);
   b->length += n;
   return result;
 }
 
 char *
-add1_buffer(struct buffer *b, int c)
+add1_buffer (struct buffer *b, int c)
 {
   /* This special case should be kept cheap;
    *  don't make it just a mere convenience
@@ -516,7 +481,7 @@ add1_buffer(struct buffer *b, int c)
     {
       char *result;
       if (b->allocated - b->length < 1)
-        resize_buffer(b, b->length+1);
+        resize_buffer (b, b->length+1);
       result = b->b + b->length++;
       *result = c;
       return result;
@@ -526,9 +491,9 @@ add1_buffer(struct buffer *b, int c)
 }
 
 void
-free_buffer(struct buffer *b)
+free_buffer (struct buffer *b)
 {
   if (b)
-    free(b->b);
-  free(b);
+    free (b->b);
+  free (b);
 }
