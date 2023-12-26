@@ -1,20 +1,19 @@
 /* Retrieve information about a FILE stream.
-   Copyright (C) 2007, 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009-2022 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-#include <stdbool.h>
 #include <stdio.h>
 
 /* Return true if the stream STREAM is opened write-only or
@@ -33,9 +32,12 @@
 
    STREAM must not be wide-character oriented.  */
 
-#if HAVE___FWRITING /* glibc >= 2.2, Solaris >= 7, Android API >= 29, musl libc */
+#if HAVE___FWRITING
+/* glibc >= 2.2, Solaris >= 7, UnixWare >= 7.1.4.MP4, Cygwin >= 1.7.34, Android API >= 29, musl libc */
 
-# include <stdio_ext.h>
+# if HAVE_STDIO_EXT_H
+#  include <stdio_ext.h>
+# endif
 # define fwriting(stream) (__fwriting (stream) != 0)
 
 #else

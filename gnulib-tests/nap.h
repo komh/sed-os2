@@ -1,9 +1,9 @@
 /* Assist in file system timestamp tests.
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -20,9 +20,15 @@
 # define GLTEST_NAP_H
 
 # include <limits.h>
-# include <stdbool.h>
 
-# include <intprops.h>
+# include <stdckdint.h>
+
+/* Avoid a conflict with a function called nap() on UnixWare.  */
+# if defined _SCO_DS || (defined __SCO_VERSION__ || defined __sysv5__)  /* OpenServer, UnixWare */
+#  include <unistd.h>
+#  undef nap
+#  define nap gl_nap
+# endif
 
 /* Name of the witness file.  */
 #define TEMPFILE BASE "nap.tmp"
@@ -48,9 +54,9 @@ diff_timespec (struct timespec a, struct timespec b)
   if (! (bs < as || (bs == as && bns < ans)))
     return 0;
 
-  if (INT_SUBTRACT_WRAPV (as, bs, &sdiff)
-      || INT_MULTIPLY_WRAPV (sdiff, 1000000000, &sdiff)
-      || INT_ADD_WRAPV (sdiff, ans - bns, &sdiff))
+  if (ckd_sub (&sdiff, as, bs)
+      || ckd_mul (&sdiff, sdiff, 1000000000)
+      || ckd_add (&sdiff, sdiff, ans - bns))
     return INT_MAX;
 
   return sdiff;
@@ -67,7 +73,7 @@ nap_get_stat (struct stat *st, int do_write)
 #if defined _WIN32 || defined __CYGWIN__
       /* On Windows, the modification times are not changed until NAP_FD
          is closed. See
-         https://msdn.microsoft.com/en-us/library/windows/desktop/aa365747(v=vs.85).aspx */
+         <https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-writefile> */
       close (nap_fd);
       nap_fd = open (TEMPFILE, O_RDWR, 0600);
       ASSERT (nap_fd != -1);

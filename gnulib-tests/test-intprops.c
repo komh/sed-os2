@@ -1,9 +1,9 @@
 /* Test intprops.h.
-   Copyright (C) 2011-2018 Free Software Foundation, Inc.
+   Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -30,10 +30,12 @@
 
 #include <config.h>
 
-#include "intprops.h"
-#include "verify.h"
+#ifdef TEST_STDCKDINT
+# include <stdckdint.h>
+#else
+# include "intprops.h"
+#endif
 
-#include <stdbool.h>
 #include <inttypes.h>
 #include <limits.h>
 
@@ -41,14 +43,17 @@
 
 /* Compile-time verification of expression X.
    In this file, we need it as a statement, rather than as a declaration.  */
-#define verify_stmt(x) do { verify (x); } while (0)
+#define verify_stmt(x) do { static_assert (x); } while (0)
 
 /* VERIFY (X) uses a static assertion for compilers that are known to work,
    and falls back on a dynamic assertion for other compilers.
+   But it ignores X if testing stdckdint.h.
    These tests should be checkable via 'verify' rather than 'ASSERT', but
    using 'verify' would run into a bug with HP-UX 11.23 cc; see
    <https://lists.gnu.org/r/bug-gnulib/2011-05/msg00401.html>.  */
-#if __GNUC__ || __SUNPRO_C
+#ifdef TEST_STDCKDINT
+# define VERIFY(x) ((void) 0)
+#elif __GNUC__ || __clang__ || __SUNPRO_C
 # define VERIFY(x) verify_stmt (x)
 #else
 # define VERIFY(x) ASSERT (x)
@@ -56,12 +61,16 @@
 
 #define DONTCARE __LINE__
 
+int int_minus_2 = -2;
+int int_1 = 1;
+
 int
 main (void)
 {
   /* Use VERIFY for tests that must be integer constant expressions,
      ASSERT otherwise.  */
 
+#ifndef TEST_STDCKDINT
   /* TYPE_IS_INTEGER.  */
   ASSERT (TYPE_IS_INTEGER (bool));
   ASSERT (TYPE_IS_INTEGER (char));
@@ -158,6 +167,7 @@ main (void)
   VERIFY (INT_STRLEN_BOUND (int64_t) == sizeof ("-9223372036854775808") - 1);
   VERIFY (INT_BUFSIZE_BOUND (int64_t) == sizeof ("-9223372036854775808"));
   #endif
+#endif
 
   /* All the INT_<op>_RANGE_OVERFLOW tests are equally valid as
      INT_<op>_OVERFLOW tests, so define macros to do both.  OP is the
@@ -215,8 +225,10 @@ main (void)
   CHECK_SBINOP (*, MULTIPLY, INT_MIN, INT_MIN, int, true, 0);
   CHECK_SBINOP (*, MULTIPLY, -1, INT_MIN, int,
                 INT_NEGATE_OVERFLOW (INT_MIN), INT_MIN);
+#if !defined __HP_cc
   CHECK_SBINOP (*, MULTIPLY, LONG_MIN / INT_MAX, (long int) INT_MAX,
                 long int, false, LONG_MIN - LONG_MIN % INT_MAX);
+#endif
 
   CHECK_BINOP (/, DIVIDE, INT_MIN, -1, int,
                INT_NEGATE_OVERFLOW (INT_MIN), INT_MIN);
@@ -237,33 +249,48 @@ main (void)
 
   /* INT_<op>_OVERFLOW and INT_<op>_WRAPV with mixed types.  */
   #define CHECK_SUM(a, b, t, v, vres)                                     \
-    CHECK_SUM1(a, b, t, v, vres);                                         \
-    CHECK_SUM1(b, a, t, v, vres)
-  #define CHECK_SSUM(a, b, t, v, vres)                                    \
-    CHECK_SSUM1(a, b, t, v, vres);                                        \
-    CHECK_SSUM1(b, a, t, v, vres)
+    CHECK_SUM1 (a, b, t, v, vres);                                        \
+    CHECK_SUM1 (b, a, t, v, vres)
+  #define CHECK_SUM_WRAPV(a, b, t, v, vres, okres)                        \
+    CHECK_SUM_WRAPV1 (a, b, t, v, vres, okres);                           \
+    CHECK_SUM_WRAPV1 (b, a, t, v, vres, okres)
   #define CHECK_SUM1(a, b, t, v, vres)                                    \
-    VERIFY (INT_ADD_OVERFLOW (a, b) == (v))
-  #define CHECK_SSUM1(a, b, t, v, vres)                                   \
-    CHECK_SUM1(a, b, t, v, vres);                                         \
+    VERIFY (INT_ADD_OVERFLOW (a, b) == (v));                              \
+    CHECK_SUM_WRAPV1 (a, b, t, v, vres, (a) + (b))
+  #define CHECK_SUM_WRAPV1(a, b, t, v, vres, okres)                       \
     {                                                                     \
       t result;                                                           \
       ASSERT (INT_ADD_WRAPV (a, b, &result) == (v));                      \
-      ASSERT (result == ((v) ? (vres) : ((a) + (b))));                    \
+      ASSERT (result == ((v) ? (vres) : (okres)));                        \
     }
-  CHECK_SSUM (-1, LONG_MIN, long int, true, LONG_MAX);
+  CHECK_SUM (-1, LONG_MIN, long int, true, LONG_MAX);
   CHECK_SUM (-1, UINT_MAX, unsigned int, false, DONTCARE);
-  CHECK_SSUM (-1L, INT_MIN, long int, INT_MIN == LONG_MIN,
+  CHECK_SUM (-1L, INT_MIN, long int, INT_MIN == LONG_MIN,
               INT_MIN == LONG_MIN ? INT_MAX : DONTCARE);
   CHECK_SUM (0u, -1, unsigned int, true, 0u + -1);
   CHECK_SUM (0u, 0, unsigned int, false, DONTCARE);
   CHECK_SUM (0u, 1, unsigned int, false, DONTCARE);
-  CHECK_SSUM (1, LONG_MAX, long int, true, LONG_MIN);
+  CHECK_SUM (1, LONG_MAX, long int, true, LONG_MIN);
   CHECK_SUM (1, UINT_MAX, unsigned int, true, 0u);
-  CHECK_SSUM (1L, INT_MAX, long int, INT_MAX == LONG_MAX,
+  CHECK_SUM (1L, INT_MAX, long int, INT_MAX == LONG_MAX,
               INT_MAX == LONG_MAX ? INT_MIN : DONTCARE);
   CHECK_SUM (1u, INT_MAX, unsigned int, INT_MAX == UINT_MAX, 1u + INT_MAX);
   CHECK_SUM (1u, INT_MIN, unsigned int, true, 1u + INT_MIN);
+  CHECK_SUM_WRAPV (-1, 1u, int, false, DONTCARE, 0);
+  CHECK_SUM_WRAPV (-1, 1ul, int, false, DONTCARE, 0);
+  CHECK_SUM_WRAPV (-1l, 1u, int, false, DONTCARE, 0);
+  CHECK_SUM_WRAPV (-100, 1000u, int, false, DONTCARE, 900);
+  CHECK_SUM_WRAPV (INT_MIN, UINT_MAX, int, false, DONTCARE, INT_MAX);
+  CHECK_SUM_WRAPV (1u, INT_MAX, int, true, INT_MIN, DONTCARE);
+  CHECK_SUM_WRAPV (INT_MAX, 1, long int, LONG_MAX <= INT_MAX, INT_MIN,
+                   INT_MAX + 1L);
+  CHECK_SUM_WRAPV (UINT_MAX, 1, long int, LONG_MAX <= UINT_MAX, 0,
+                   UINT_MAX + 1L);
+  CHECK_SUM_WRAPV (INT_MAX, 1, unsigned long int, ULONG_MAX <= INT_MAX, 0,
+                   INT_MAX + 1uL);
+  CHECK_SUM_WRAPV (UINT_MAX, 1, unsigned long int, ULONG_MAX <= UINT_MAX, 0,
+                   UINT_MAX + 1uL);
+
   {
     long int result;
     ASSERT (INT_ADD_WRAPV (1, INT_MAX, &result) == (INT_MAX == LONG_MAX));
@@ -273,7 +300,9 @@ main (void)
   #define CHECK_DIFFERENCE(a, b, t, v, vres)                              \
     VERIFY (INT_SUBTRACT_OVERFLOW (a, b) == (v))
   #define CHECK_SDIFFERENCE(a, b, t, v, vres)                             \
-    CHECK_DIFFERENCE(a, b, t, v, vres);                                   \
+    CHECK_DIFFERENCE (a, b, t, v, vres);                                  \
+    CHECK_SDIFFERENCE_WRAPV (a, b, t, v, vres)
+  #define CHECK_SDIFFERENCE_WRAPV(a, b, t, v, vres)                       \
     {                                                                     \
       t result;                                                           \
       ASSERT (INT_SUBTRACT_WRAPV (a, b, &result) == (v));                 \
@@ -290,6 +319,11 @@ main (void)
   CHECK_SDIFFERENCE (-1, INT_MAX, int, false, -1 - INT_MAX);
   CHECK_SDIFFERENCE (0, INT_MIN, int, INT_MIN < -INT_MAX, INT_MIN);
   CHECK_SDIFFERENCE (0, INT_MAX, int, false, 0 - INT_MAX);
+  CHECK_SDIFFERENCE_WRAPV (-1, 1u, int, false, DONTCARE);
+  CHECK_SDIFFERENCE_WRAPV (-1, 1ul, int, false, DONTCARE);
+  CHECK_SDIFFERENCE_WRAPV (-1l, 1u, int, false, DONTCARE);
+  CHECK_SDIFFERENCE_WRAPV (0u, INT_MAX, int, false, DONTCARE);
+  CHECK_SDIFFERENCE_WRAPV (1u, INT_MIN, int, true, 1u - INT_MIN);
   {
     long int result;
     ASSERT (INT_SUBTRACT_WRAPV (INT_MAX, -1, &result) == (INT_MAX == LONG_MAX));
@@ -297,15 +331,20 @@ main (void)
   }
 
   #define CHECK_PRODUCT(a, b, t, v, vres)                                 \
-    CHECK_PRODUCT1(a, b, t, v, vres);                                     \
-    CHECK_PRODUCT1(b, a, t, v, vres)
+    CHECK_PRODUCT1 (a, b, t, v, vres);                                    \
+    CHECK_PRODUCT1 (b, a, t, v, vres)
   #define CHECK_SPRODUCT(a, b, t, v, vres)                                \
-    CHECK_SPRODUCT1(a, b, t, v, vres);                                    \
-    CHECK_SPRODUCT1(b, a, t, v, vres)
+    CHECK_SPRODUCT1 (a, b, t, v, vres);                                   \
+    CHECK_SPRODUCT1 (b, a, t, v, vres)
+  #define CHECK_SPRODUCT_WRAPV(a, b, t, v, vres)                          \
+    CHECK_SPRODUCT_WRAPV1 (a, b, t, v, vres);                             \
+    CHECK_SPRODUCT_WRAPV1 (b, a, t, v, vres)
   #define CHECK_PRODUCT1(a, b, t, v, vres)                                \
     VERIFY (INT_MULTIPLY_OVERFLOW (a, b) == (v))
   #define CHECK_SPRODUCT1(a, b, t, v, vres)                               \
-    CHECK_PRODUCT1(a, b, t, v, vres);                                     \
+    CHECK_PRODUCT1 (a, b, t, v, vres);                                    \
+    CHECK_SPRODUCT_WRAPV1 (a, b, t, v, vres)
+  #define CHECK_SPRODUCT_WRAPV1(a, b, t, v, vres)                         \
     {                                                                     \
       t result;                                                           \
       ASSERT (INT_MULTIPLY_WRAPV (a, b, &result) == (v));                 \
@@ -338,11 +377,17 @@ main (void)
   CHECK_PRODUCT (INT_MAX, UINT_MAX, unsigned int, true, INT_MAX * UINT_MAX);
   CHECK_PRODUCT (INT_MAX, ULONG_MAX, unsigned long int, true,
                  INT_MAX * ULONG_MAX);
+#if !defined __HP_cc
   CHECK_SPRODUCT (INT_MIN, LONG_MAX / INT_MIN - 1, long int, true, LONG_MIN);
   CHECK_SPRODUCT (INT_MIN, LONG_MAX / INT_MIN, long int, false, DONTCARE);
+#endif
   CHECK_PRODUCT (INT_MIN, UINT_MAX, unsigned int, true, INT_MIN * UINT_MAX);
   CHECK_PRODUCT (INT_MIN, ULONG_MAX, unsigned long int, true,
                  INT_MIN * ULONG_MAX);
+  CHECK_SPRODUCT_WRAPV (-1, INT_MAX + 1u, int, false, DONTCARE);
+  CHECK_SPRODUCT_WRAPV (-1, 1u, int, false, DONTCARE);
+  CHECK_SPRODUCT (0, ULONG_MAX, int, false, DONTCARE);
+  CHECK_SPRODUCT (0u, LONG_MIN, int, false, DONTCARE);
   {
     long int result;
     ASSERT (INT_MULTIPLY_WRAPV (INT_MAX, INT_MAX, &result)
@@ -364,6 +409,12 @@ main (void)
             || result == LONG_MIN * (long long int) LONG_MIN);
   }
 # endif
+
+  /* Check for GCC bug 91450.  */
+  {
+    unsigned long long result;
+    ASSERT (INT_MULTIPLY_WRAPV (int_minus_2, int_1, &result) && result == -2);
+  }
 
   #define CHECK_QUOTIENT(a, b, v) VERIFY (INT_DIVIDE_OVERFLOW (a, b) == (v))
 

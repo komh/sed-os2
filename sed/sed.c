@@ -1,5 +1,5 @@
 /*  GNU SED, a batch stream editor.
-    Copyright (C) 1989-2018 Free Software Foundation, Inc.
+    Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "progname.h"
 #include "version.h"
 #include "xalloc.h"
+#include <selinux/selinux.h>
 
 #include "version-etc.h"
 
@@ -84,12 +85,6 @@ countT lcmd_out_line_len = 70;
 /* The complete compiled SED program that we are going to run: */
 static struct vector *the_program = NULL;
 
-/* When we've created a temporary for an in-place update,
-   we may have to exit before the rename.  This is the name
-   of the temporary that we'll have to unlink via an atexit-
-   registered cleanup function.  */
-static char const *G_file_to_unlink;
-
 struct localeinfo localeinfo;
 
 /* When exiting between temporary file creation and the rename
@@ -98,25 +93,9 @@ static void
 cleanup (void)
 {
   IF_LINT (free (in_place_extension));
-  if (G_file_to_unlink)
-    unlink (G_file_to_unlink);
+  remove_cleanup_file ();
 }
 
-/* Note that FILE must be removed upon exit.  */
-void
-register_cleanup_file (char const *file)
-{
-  G_file_to_unlink = file;
-}
-
-/* Clear the global file-to-unlink global.  */
-void
-cancel_cleanup (void)
-{
-  G_file_to_unlink = NULL;
-}
-
-static void usage (int);
 static void
 contact (int errmsg)
 {
@@ -128,6 +107,22 @@ General help using GNU software: <https://www.gnu.org/gethelp/>.\n"));
      get reports for other people's bugs.  */
   if (!errmsg)
     fprintf (out, _("E-mail bug reports to: <%s>.\n"), PACKAGE_BUGREPORT);
+}
+
+static void
+selinux_support (void)
+{
+  putchar ('\n');
+#if HAVE_SELINUX_SELINUX_H
+  puts (_("This sed program was built with SELinux support."));
+  if (is_selinux_enabled ())
+    puts (_("SELinux is enabled on this system."));
+  else
+    puts (_("SELinux is disabled on this system."));
+#else
+  puts (_("This sed program was built without SELinux support."));
+#endif
+  putchar ('\n');
 }
 
 _Noreturn static void
@@ -148,7 +143,7 @@ Usage: %s [OPTION]... {script-only-if-no-other-script} [input-file]...\n\
   fprintf (out, _("  -f script-file, --file=script-file\n\
                  add the contents of script-file to the commands" \
                  " to be executed\n"));
-#ifdef ENABLE_FOLLOW_SYMLINKS
+#ifdef HAVE_READLINK
   fprintf (out, _("  --follow-symlinks\n\
                  follow symlinks when processing in place\n"));
 #endif
@@ -217,7 +212,7 @@ main (int argc, char **argv)
     {"unbuffered", 0, NULL, 'u'},
     {"version", 0, NULL, 'v'},
     {"help", 0, NULL, 'h'},
-#ifdef ENABLE_FOLLOW_SYMLINKS
+#ifdef HAVE_READLINK
     {"follow-symlinks", 0, NULL, 'F'},
 #endif
     {NULL, 0, NULL, 0}
@@ -344,6 +339,7 @@ main (int argc, char **argv)
         case 'v':
           version_etc (stdout, program_name, PACKAGE_NAME, Version,
                       AUTHORS, (char *) NULL);
+          selinux_support ();
           contact (false);
           ck_fclose (NULL);
           exit (EXIT_SUCCESS);

@@ -1,5 +1,5 @@
 /*  GNU SED, a batch stream editor.
-    Copyright (C) 2018 Free Software Foundation, Inc.
+    Copyright (C) 2018-2022 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -363,7 +363,7 @@ debug_print_function (const struct vector *program, const struct sed_cmd *sc)
 
     case 'r':
       putchar (' ');
-      fputs (sc->x.fname, stdout);
+      fputs (sc->x.readcmd.fname, stdout);
       break;
 
     case 'R':

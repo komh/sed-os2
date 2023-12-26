@@ -1,17 +1,17 @@
 /* Determine name of the currently selected locale.
-   Copyright (C) 1995-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995-2022 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   it under the terms of the GNU Lesser General Public License as published by
+   the Free Software Foundation; either version 2.1 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Ulrich Drepper <drepper@gnu.org>, 1995.  */
@@ -21,11 +21,7 @@
 #include <config.h>
 
 /* Specification.  */
-#ifdef IN_LIBINTL
-# include "gettextP.h"
-#else
-# include "localename.h"
-#endif
+#include "localename.h"
 
 #include <limits.h>
 #include <stddef.h>
@@ -34,12 +30,8 @@
 #include <string.h>
 
 #include "flexmember.h"
-
-/* We cannot support uselocale() on platforms where the locale_t type is fake.
-   See intl-thread-locale.m4 for details.  */
-#if HAVE_WORKING_USELOCALE && !HAVE_FAKE_LOCALES
-# define HAVE_GOOD_USELOCALE 1
-#endif
+#include "setlocale_null.h"
+#include "thread-optim.h"
 
 #if HAVE_GOOD_USELOCALE
 /* Mac OS X 10.5 defines the locale_t type in <xlocale.h>.  */
@@ -49,9 +41,7 @@
 # if (__GLIBC__ >= 2 && !defined __UCLIBC__) || (defined __linux__ && HAVE_LANGINFO_H) || defined __CYGWIN__
 #  include <langinfo.h>
 # endif
-# if !defined IN_LIBINTL
-#  include "glthread/lock.h"
-# endif
+# include "glthread/lock.h"
 # if defined __sun
 #  if HAVE_GETLOCALENAME_L
 /* Solaris >= 12.  */
@@ -61,25 +51,18 @@ extern char * getlocalename_l(int, locale_t);
 #  endif
 # endif
 # if HAVE_NAMELESS_LOCALES
-#  include <errno.h>
 #  include "localename-table.h"
 # endif
 #endif
 
-#if HAVE_CFLOCALECOPYCURRENT || HAVE_CFPREFERENCESCOPYAPPVALUE
+#if HAVE_CFPREFERENCESCOPYAPPVALUE
 # include <CoreFoundation/CFString.h>
-# if HAVE_CFLOCALECOPYCURRENT
-#  include <CoreFoundation/CFLocale.h>
-# elif HAVE_CFPREFERENCESCOPYAPPVALUE
-#  include <CoreFoundation/CFPreferences.h>
-# endif
+# include <CoreFoundation/CFPreferences.h>
 #endif
 
 #if defined _WIN32 && !defined __CYGWIN__
 # define WINDOWS_NATIVE
-# if !defined IN_LIBINTL
-#  include "glthread/lock.h"
-# endif
+# include "glthread/lock.h"
 #endif
 
 #if defined WINDOWS_NATIVE || defined __CYGWIN__ /* Native Windows or Cygwin */
@@ -1153,10 +1136,19 @@ extern char * getlocalename_l(int, locale_t);
 # ifndef LOCALE_NAME_MAX_LENGTH
 # define LOCALE_NAME_MAX_LENGTH 85
 # endif
+/* Don't assume that UNICODE is not defined.  */
+# undef GetLocaleInfo
+# define GetLocaleInfo GetLocaleInfoA
+# undef EnumSystemLocales
+# define EnumSystemLocales EnumSystemLocalesA
 #endif
 
+/* We want to use the system's setlocale() function here, not the gnulib
+   override.  */
+#undef setlocale
 
-#if HAVE_CFLOCALECOPYCURRENT || HAVE_CFPREFERENCESCOPYAPPVALUE
+
+#if HAVE_CFPREFERENCESCOPYAPPVALUE
 /* Mac OS X 10.4 or newer */
 
 /* Canonicalize a Mac OS X locale name to a Unix locale name.
@@ -2296,8 +2288,8 @@ gl_locale_name_from_win32_LANGID (LANGID langid)
           }
         return "wen";
       case LANG_SOTHO:
-        /* <https://msdn.microsoft.com/en-us/library/dd318693.aspx> calls
-           it "Sesotho sa Leboa"; according to
+        /* <https://docs.microsoft.com/en-us/windows/desktop/Intl/language-identifier-constants-and-strings>
+           calls it "Sesotho sa Leboa"; according to
            <https://www.ethnologue.com/show_language.asp?code=nso>
            <https://www.ethnologue.com/show_language.asp?code=sot>
            it's the same as Northern Sotho.  */
@@ -2563,7 +2555,7 @@ static char lname[LC_MAX * (LOCALE_NAME_MAX_LENGTH + 1) + 1];
 
 /* Callback function for EnumLocales.  */
 static BOOL CALLBACK
-enum_locales_fn (LPTSTR locale_num_str)
+enum_locales_fn (LPSTR locale_num_str)
 {
   char *endp;
   char locval[2 * LOCALE_NAME_MAX_LENGTH + 1 + 1];
@@ -2691,31 +2683,34 @@ struniq (const char *string)
     /* Out of memory.  Return a statically allocated string.  */
     return "C";
   memcpy (new_node->contents, string, size);
-  /* Lock while inserting new_node.  */
-  gl_lock_lock (struniq_lock);
-  /* Check whether another thread already added the string while we were
-     waiting on the lock.  */
-  for (p = struniq_hash_table[slot]; p != NULL; p = p->next)
-    if (strcmp (p->contents, string) == 0)
-      {
-        free (new_node);
-        new_node = p;
-        goto done;
-      }
-  /* Really insert new_node into the hash table.  Fill new_node entirely first,
-     because other threads may be iterating over the linked list.  */
-  new_node->next = struniq_hash_table[slot];
-  struniq_hash_table[slot] = new_node;
- done:
-  /* Unlock after new_node is inserted.  */
-  gl_lock_unlock (struniq_lock);
+  {
+    bool mt = gl_multithreaded ();
+    /* Lock while inserting new_node.  */
+    if (mt) gl_lock_lock (struniq_lock);
+    /* Check whether another thread already added the string while we were
+       waiting on the lock.  */
+    for (p = struniq_hash_table[slot]; p != NULL; p = p->next)
+      if (strcmp (p->contents, string) == 0)
+        {
+          free (new_node);
+          new_node = p;
+          goto done;
+        }
+    /* Really insert new_node into the hash table.  Fill new_node entirely
+       first, because other threads may be iterating over the linked list.  */
+    new_node->next = struniq_hash_table[slot];
+    struniq_hash_table[slot] = new_node;
+   done:
+    /* Unlock after new_node is inserted.  */
+    if (mt) gl_lock_unlock (struniq_lock);
+  }
   return new_node->contents;
 }
 
 #endif
 
 
-#if HAVE_GOOD_USELOCALE && HAVE_NAMELESS_LOCALES
+#if LOCALENAME_ENHANCE_LOCALE_FUNCS
 
 /* The 'locale_t' object does not contain the names of the locale categories.
    We have to associate them with the object through a hash table.
@@ -2729,7 +2724,7 @@ get_locale_t_name (int category, locale_t locale)
   if (locale == LC_GLOBAL_LOCALE)
     {
       /* Query the global locale.  */
-      const char *name = setlocale (category, NULL);
+      const char *name = setlocale_null (category);
       if (name != NULL)
         return struniq (name);
       else
@@ -2925,9 +2920,7 @@ newlocale (int category_mask, const char *name, locale_t base)
   result = newlocale (category_mask, name, base);
   if (result == NULL)
     {
-      int saved_errno = errno;
       free (node);
-      errno = saved_errno;
       return NULL;
     }
 
@@ -2986,9 +2979,7 @@ duplocale (locale_t locale)
   result = duplocale (locale);
   if (result == NULL)
     {
-      int saved_errno = errno;
       free (node);
-      errno = saved_errno;
       return NULL;
     }
 
@@ -3103,7 +3094,7 @@ freelocale (locale_t locale)
 static
 # endif
 const char *
-gl_locale_name_thread_unsafe (int category, const char *categoryname)
+gl_locale_name_thread_unsafe (int category, _GL_UNUSED const char *categoryname)
 {
 # if HAVE_GOOD_USELOCALE
   {
@@ -3191,6 +3182,8 @@ gl_locale_name_thread_unsafe (int category, const char *categoryname)
             return "";
           }
 #   endif
+#  elif defined _AIX && HAVE_NAMELESS_LOCALES
+        return get_locale_t_name (category, thread_locale);
 #  elif defined __CYGWIN__
         /* Cygwin < 2.6 lacks uselocale and thread-local locales altogether.
            Cygwin <= 2.6.1 lacks NL_LOCALE_NAME, requiring peeking inside
@@ -3216,7 +3209,7 @@ gl_locale_name_thread_unsafe (int category, const char *categoryname)
 #endif
 
 const char *
-gl_locale_name_thread (int category, const char *categoryname)
+gl_locale_name_thread (int category, _GL_UNUSED const char *categoryname)
 {
 #if HAVE_GOOD_USELOCALE
   const char *name = gl_locale_name_thread_unsafe (category, categoryname);
@@ -3240,25 +3233,20 @@ gl_locale_name_thread (int category, const char *categoryname)
 #endif
 
 const char *
-gl_locale_name_posix (int category, const char *categoryname)
+gl_locale_name_posix (int category, _GL_UNUSED const char *categoryname)
 {
 #if defined WINDOWS_NATIVE
   if (LC_MIN <= category && category <= LC_MAX)
     {
-      const char *locname = setlocale (category, NULL);
-      LCID lcid;
-
-      /* If CATEGORY is LC_ALL, the result might be a semi-colon
-        separated list of locales.  We need only one, so we take the
-        one corresponding to LC_CTYPE, as the most important for
-        character translations.  */
-      if (category == LC_ALL && strchr (locname, ';'))
-        locname = setlocale (LC_CTYPE, NULL);
+      const char *locname =
+        /* setlocale_null (category) is identical to setlocale (category, NULL)
+           on this platform.  */
+        setlocale (category, NULL);
 
       /* Convert locale name to LCID.  We don't want to use
          LocaleNameToLCID because (a) it is only available since Vista,
          and (b) it doesn't accept locale names returned by 'setlocale'.  */
-      lcid = get_lcid (locname);
+      LCID lcid = get_lcid (locname);
 
       if (lcid > 0)
         return gl_locale_name_from_win32_LCID (lcid);
@@ -3269,8 +3257,8 @@ gl_locale_name_posix (int category, const char *categoryname)
 
     /* Use the POSIX methods of looking to 'LC_ALL', 'LC_xxx', and 'LANG'.
        On some systems this can be done by the 'setlocale' function itself.  */
-#if defined HAVE_SETLOCALE && defined HAVE_LC_MESSAGES && defined HAVE_LOCALE_NULL
-    locname = setlocale (category, NULL);
+#if defined HAVE_LC_MESSAGES && defined HAVE_LOCALE_NULL
+    locname = setlocale_null (category);
 #else
     /* On other systems we ignore what setlocale reports and instead look at the
        environment variables directly.  This is necessary
@@ -3294,22 +3282,23 @@ gl_locale_name_posix (int category, const char *categoryname)
     /* Convert the locale name from the format returned by setlocale() or found
        in the environment variables to the XPG syntax.  */
 #if defined WINDOWS_NATIVE
-    {
-      /* Convert locale name to LCID.  We don't want to use
-         LocaleNameToLCID because (a) it is only available since Vista,
-         and (b) it doesn't accept locale names returned by 'setlocale'.  */
-      LCID lcid = get_lcid (locname);
+    if (locname != NULL)
+      {
+        /* Convert locale name to LCID.  We don't want to use
+           LocaleNameToLCID because (a) it is only available since Vista,
+           and (b) it doesn't accept locale names returned by 'setlocale'.  */
+        LCID lcid = get_lcid (locname);
 
-      if (lcid > 0)
-        return gl_locale_name_from_win32_LCID (lcid);
-    }
+        if (lcid > 0)
+          return gl_locale_name_from_win32_LCID (lcid);
+      }
 #endif
     return locname;
   }
 }
 
 const char *
-gl_locale_name_environ (int category, const char *categoryname)
+gl_locale_name_environ (_GL_UNUSED int category, const char *categoryname)
 {
   const char *retval;
 
@@ -3325,7 +3314,7 @@ gl_locale_name_environ (int category, const char *categoryname)
   retval = getenv ("LANG");
   if (retval != NULL && retval[0] != '\0')
     {
-#if HAVE_CFLOCALECOPYCURRENT || HAVE_CFPREFERENCESCOPYAPPVALUE
+#if HAVE_CFPREFERENCESCOPYAPPVALUE
       /* Mac OS X 10.2 or newer.
          Ignore invalid LANG value set by the Terminal application.  */
       if (strcmp (retval, "UTF-8") != 0)
@@ -3372,7 +3361,7 @@ gl_locale_name_default (void)
          "C.UTF-8" locale, which operates in the same way as the "C" locale.
   */
 
-#if !(HAVE_CFLOCALECOPYCURRENT || HAVE_CFPREFERENCESCOPYAPPVALUE || defined WINDOWS_NATIVE || defined __CYGWIN__)
+#if !(HAVE_CFPREFERENCESCOPYAPPVALUE || defined WINDOWS_NATIVE || defined __CYGWIN__)
 
   /* The system does not have a way of setting the locale, other than the
      POSIX specified environment variables.  We use C as default locale.  */
@@ -3385,8 +3374,17 @@ gl_locale_name_default (void)
      context, because message catalogs are not specific to a single
      codeset.  */
 
-# if HAVE_CFLOCALECOPYCURRENT || HAVE_CFPREFERENCESCOPYAPPVALUE
+# if HAVE_CFPREFERENCESCOPYAPPVALUE
   /* Mac OS X 10.4 or newer */
+  /* Don't use the API introduced in Mac OS X 10.5, CFLocaleCopyCurrent,
+     because in macOS 10.13.4 it has the following behaviour:
+     When two or more languages are specified in the
+     "System Preferences > Language & Region > Preferred Languages" panel,
+     it returns en_CC where CC is the territory (even when English is not among
+     the preferred languages!).  What we want instead is what
+     CFLocaleCopyCurrent returned in earlier macOS releases and what
+     CFPreferencesCopyAppValue still returns, namely ll_CC where ll is the
+     first among the preferred languages and CC is the territory.  */
   {
     /* Cache the locale name, since CoreFoundation calls are expensive.  */
     static const char *cached_localename;
@@ -3394,17 +3392,12 @@ gl_locale_name_default (void)
     if (cached_localename == NULL)
       {
         char namebuf[256];
-#  if HAVE_CFLOCALECOPYCURRENT /* Mac OS X 10.5 or newer */
-        CFLocaleRef locale = CFLocaleCopyCurrent ();
-        CFStringRef name = CFLocaleGetIdentifier (locale);
-#  elif HAVE_CFPREFERENCESCOPYAPPVALUE /* Mac OS X 10.4 or newer */
         CFTypeRef value =
           CFPreferencesCopyAppValue (CFSTR ("AppleLocale"),
                                      kCFPreferencesCurrentApplication);
         if (value != NULL && CFGetTypeID (value) == CFStringGetTypeID ())
           {
             CFStringRef name = (CFStringRef)value;
-#  endif
 
             if (CFStringGetCString (name, namebuf, sizeof (namebuf),
                                     kCFStringEncodingASCII))
@@ -3412,12 +3405,7 @@ gl_locale_name_default (void)
                 gl_locale_name_canonicalize (namebuf);
                 cached_localename = strdup (namebuf);
               }
-
-#  if HAVE_CFLOCALECOPYCURRENT /* Mac OS X 10.5 or newer */
-        CFRelease (locale);
-#  elif HAVE_CFPREFERENCESCOPYAPPVALUE /* Mac OS X 10.4 or newer */
           }
-#  endif
         if (cached_localename == NULL)
           cached_localename = "C";
       }

@@ -1,4 +1,4 @@
-# Copyright (C) 1993-2018 Free Software Foundation, Inc.
+# Copyright (C) 1993-2022 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,25 +19,24 @@ AC_INIT([GNU sed],
         [bug-sed@gnu.org])
 AC_CONFIG_AUX_DIR(build-aux)
 AC_CONFIG_SRCDIR([sed/sed.c])
-AM_CONFIG_HEADER(config.h:config_h.in)
+AC_CONFIG_HEADERS([config.h:config_h.in])
 AC_PREREQ([2.64])
-AM_INIT_AUTOMAKE([1.11.1 no-dist-gzip dist-xz color-tests parallel-tests
-                  subdir-objects])
+AM_INIT_AUTOMAKE([1.11.1 dist-xz color-tests parallel-tests subdir-objects])
 AM_SILENT_RULES([yes]) # make --enable-silent-rules the default.
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_PROG_CC_STDC
+AC_PROG_CC
 AM_PROG_CC_C_O
 gl_EARLY
 gl_INIT
 gl_DISABLE_THREADS
 
+# Ensure VLAs are not used.
+# Note -Wvla is implicitly added by gl_MANYWARN_ALL_GCC
+AC_DEFINE([GNULIB_NO_VLA], [1], [Define to 1 to disable use of VLAs])
+
 # The test suite needs to know if we have a working perl.
-# FIXME: this is suboptimal.  Ideally, we would be able to call gl_PERL
-# with an ACTION-IF-NOT-FOUND argument ...
-cu_have_perl=yes
-case $PERL in *"/missing "*) cu_have_perl=no;; esac
-AM_CONDITIONAL([HAVE_PERL], [test $cu_have_perl = yes])
+AM_CONDITIONAL([HAVE_PERL], [test "$gl_cv_prog_perl" != no])
 
 # gl_GCC_VERSION_IFELSE([major], [minor], [run-if-found], [run-if-not-found])
 # ------------------------------------------------
@@ -58,7 +57,8 @@ AC_DEFUN([gl_GCC_VERSION_IFELSE],
 )
 
 AC_CACHE_CHECK([whether "rt" can be used with fopen], [sed_cv_fopen_rt], [
-AC_TRY_RUN([
+AC_RUN_IFELSE(
+  [AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <errno.h>
 
@@ -70,7 +70,7 @@ int main()
   fp = fopen ("conftest.c", "rt");
   if (fp) fclose (fp);
   return fp ? 0 : 1;
-}], [sed_cv_fopen_rt=yes],
+}]])], [sed_cv_fopen_rt=yes],
     [sed_cv_fopen_rt=no],
     [case $host in
        *cygwin* | *mingw*) sed_cv_fopen_rt=yes ;;
@@ -82,7 +82,8 @@ if test "$sed_cv_fopen_rt" = yes; then
 fi
 
 AC_CACHE_CHECK([whether -lcP is needed], [sed_cv_libcp_needed], [
-AC_TRY_RUN([
+AC_RUN_IFELSE(
+  [AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <errno.h>
 
@@ -96,7 +97,7 @@ int main()
   result = fflush (fp) == EOF && errno == 0;
   fclose (fp);
   return result;
-}], [sed_cv_libcp_needed=no],
+}]])], [sed_cv_libcp_needed=no],
     [sed_cv_libcp_needed=yes],
     [sed_cv_libcp_needed="assuming no"])
 ])
@@ -112,16 +113,11 @@ AC_TYPE_SIZE_T
 AM_GNU_GETTEXT_VERSION([0.19.2])
 AM_GNU_GETTEXT([external])
 
-AC_CHECK_FUNCS_ONCE(isatty isascii memcpy strchr strtoul lstat readlink
+AC_CHECK_FUNCS_ONCE(isatty isascii memcpy strchr strtoul readlink
                     popen pathconf fchown fchmod setlocale)
 
-# Check whether we are able to follow symlinks
-if test "$ac_cv_func_lstat:$ac_cv_func_readlink" = yes:yes; then
-   AC_DEFINE([ENABLE_FOLLOW_SYMLINKS], ,
-             [Follow symlinks when processing in place])
-fi
 AM_CONDITIONAL([TEST_SYMLINKS],
-          [test "$ac_cv_func_lstat:$ac_cv_func_readlink" = yes:yes])
+          [test "$ac_cv_func_readlink" = yes])
 
 AC_ARG_ENABLE(i18n,
 [  --disable-i18n          disable internationalization (default=enabled)], ,
@@ -139,7 +135,8 @@ fi
 # have a couple of platforms where these tests pass.  Right now, only
 # Windows and HP/UX do not support the tests.
 AC_MSG_CHECKING([whether UTF-8 case folding tests should pass])
-AC_TRY_RUN([
+AC_RUN_IFELSE(
+  [AC_LANG_SOURCE([[
 #include <locale.h>
 #include <string.h>
 #include <stdlib.h>
@@ -200,7 +197,7 @@ int main()
   setlocale (LC_CTYPE, old);
   exit (!test ());
 }
-], [AC_MSG_RESULT([yes]); XFAIL_TESTS=],
+]])], [AC_MSG_RESULT([yes]); XFAIL_TESTS=],
    [AC_MSG_RESULT([no]); XFAIL_TESTS='testsuite/utf8-1 testsuite/utf8-2 \
                                       testsuite/utf8-3 testsuite/utf8-4'],
    [AC_MSG_RESULT([don't care (cross compiling)]); XFAIL_TESTS=])
@@ -242,7 +239,6 @@ if test "$gl_gcc_warnings" = yes; then
   nw="$nw -Wsystem-headers"         # Don't let system headers trigger warnings
   nw="$nw -Wsign-conversion"        # Too many warnings for now
   nw="$nw -Wformat-nonliteral"      # who.c and pinky.c strftime uses
-  nw="$nw -Wvla"                    # warnings in gettext.h
   nw="$nw -Wswitch-default"         # Too many warnings for now
 
   gl_MANYWARN_ALL_GCC([ws])
@@ -289,36 +285,24 @@ if test "$gl_gcc_warnings" = yes; then
   AC_SUBST([GNULIB_TEST_WARN_CFLAGS])
 fi
 
+AC_ARG_ENABLE([bold-man-page-references],
+  [AS_HELP_STRING([--disable-bold-man-page-references],
+     [When generating man pages, do not apply bold style around any
+      references like name(1) etc.])],
+  [gl_bold_manpages=yes ;
+   case $enableval in
+     no|yes) gl_bold_manpages=$enableval ;;
+     *)      AC_MSG_ERROR([bad value $enableval for bold-man-page-references.
+                           Options are: yes, no.]) ;;
+   esac],
+  [gl_bold_manpages=yes]
+)
+AM_CONDITIONAL([BOLD_MAN_REFS], [test "$gl_bold_manpages" != no])
+
 AM_CONDITIONAL([CROSS_COMPILING], [test "$cross_compiling" = yes])
 
 # Perl is needed for help2man
 AC_PATH_PROG([PERL], [perl])
-
-# building from tarball?
-built_from_tarball=no
-test -f "$srcdir"/.tarball-version && \
-  ! test -d "$srcdir/.git" && \
-  built_from_tarball=yes
-
-# Can the man page be built?
-# Perl needed for help2man, executing sed needed for 'sed --help'
-can_rebuild_man_page=no
-test -n "$PERL" && \
-  test "$cross_compiling" != yes && \
-  can_rebuild_man_page=yes
-
-# Build the man page when
-# building from git and rebuilding is possible.
-AM_CONDITIONAL([BUILD_MAN_PAGE],
- [test "$built_from_tarball" = no && \
-    test "$can_rebuild_man_page" = yes])
-
-# Create a stub man page instead of failing when
-# building from git and rebuilding is not possible.
-AM_CONDITIONAL([BUILD_DUMMY_MAN_PAGE],
- [test "$built_from_tarball" = no && \
-    test "$can_rebuild_man_page" = no])
-
 
 # This is needed when building outside the source dir
 # with --disable-dependency-tracking, see https://bugs.gnu.org/25371

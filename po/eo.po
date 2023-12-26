@@ -1,15 +1,15 @@
 # Esperantaj mesaĝoj por GNU sed.
-# Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2013, 2016, 2017, 2018 Free Software Foundation, Inc.
+# Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2013, 2016, 2017, 2018, 2019, 2020 Free Software Foundation, Inc.
 # This file is distributed under the same license as the sed package.
 # Edmund GRIMLEY EVANS <edmundo@rano.org> 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008.
-# Felipe Castro <fefcas@gmail.com> 2013, 2016, 2017, 2018.
+# Felipe Castro <fefcas@gmail.com> 2013, 2016, 2017, 2018, 2019, 2020.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: GNU sed 4.4.104\n"
+"Project-Id-Version: GNU sed 4.7.13\n"
 "Report-Msgid-Bugs-To: bug-gnu-utils@gnu.org\n"
-"POT-Creation-Date: 2018-12-20 22:03-0800\n"
-"PO-Revision-Date: 2018-06-06 22:02-0300\n"
+"POT-Creation-Date: 2022-11-06 13:50-0800\n"
+"PO-Revision-Date: 2020-01-07 11:04-0300\n"
 "Last-Translator: Felipe Castro <fefcas@gmail.com>\n"
 "Language-Team: Esperanto <translation-team-eo@lists.sourceforge.net>\n"
 "Language: eo\n"
@@ -18,10 +18,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.5.4\n"
-"X-Poedit-Basepath: /home/ipe/tradukado_eo/plenumitaj\n"
 
-#: lib/closeout.c:122
+#: lib/closeout.c:121
 msgid "write error"
 msgstr "skrib-eraro"
 
@@ -30,39 +28,76 @@ msgstr "skrib-eraro"
 msgid "preserving permissions for %s"
 msgstr "ni tenas la permesojn por %s"
 
-#: lib/dfa.c:970
+#: lib/dfa.c:894
 msgid "unbalanced ["
 msgstr "ne spegulita ["
 
-#: lib/dfa.c:1091
+#: lib/dfa.c:1015
 msgid "invalid character class"
 msgstr "nevalida signoklaso"
 
-#: lib/dfa.c:1217
+#: lib/dfa.c:1143
 msgid "character class syntax is [[:space:]], not [:space:]"
 msgstr "sintakso de signoklaso estas [[:spaco:]], ne [:spaco:]"
 
-#: lib/dfa.c:1284
+#: lib/dfa.c:1209
 msgid "unfinished \\ escape"
-msgstr "nefinigita kodŝanĝa \\"
+msgstr "nefinigita \\ (eskapo)"
 
-#: lib/dfa.c:1445
+#: lib/dfa.c:1319
+#, fuzzy
+msgid "? at start of expression"
+msgstr "Nevalida regula esprimo"
+
+#: lib/dfa.c:1331
+#, fuzzy
+msgid "* at start of expression"
+msgstr "Nevalida regula esprimo"
+
+#: lib/dfa.c:1345
+#, fuzzy
+msgid "+ at start of expression"
+msgstr "Nevalida regula esprimo"
+
+#: lib/dfa.c:1400
+#, fuzzy
+msgid "{...} at start of expression"
+msgstr "Nevalida regula esprimo"
+
+#: lib/dfa.c:1403
 msgid "invalid content of \\{\\}"
 msgstr "nevalida enhavo de \\{\\}"
 
-#: lib/dfa.c:1448
+#: lib/dfa.c:1405
 msgid "regular expression too big"
 msgstr "regula esprimo tro granda"
 
-#: lib/dfa.c:1863
+#: lib/dfa.c:1555
+msgid "stray \\ before unprintable character"
+msgstr ""
+
+#: lib/dfa.c:1557
+msgid "stray \\ before white space"
+msgstr ""
+
+#: lib/dfa.c:1561
+#, c-format
+msgid "stray \\ before %lc"
+msgstr ""
+
+#: lib/dfa.c:1562
+msgid "stray \\"
+msgstr ""
+
+#: lib/dfa.c:1917
 msgid "unbalanced ("
 msgstr "ne spegulita ("
 
-#: lib/dfa.c:1981
+#: lib/dfa.c:2034
 msgid "no syntax specified"
 msgstr "neniu sintakso estis indikata"
 
-#: lib/dfa.c:1992
+#: lib/dfa.c:2045
 msgid "unbalanced )"
 msgstr "ne spegulita )"
 
@@ -70,42 +105,7 @@ msgstr "ne spegulita )"
 msgid "Unknown system error"
 msgstr "Nekonata sistem-eraro"
 
-#: lib/getopt.c:278
-#, c-format
-msgid "%s: option '%s%s' is ambiguous\n"
-msgstr "%s: modifilo '%s%s' estas plursenca\n"
-
-#: lib/getopt.c:284
-#, c-format
-msgid "%s: option '%s%s' is ambiguous; possibilities:"
-msgstr "%s: modifilo '%s%s' estas plursenca; eblecoj:"
-
-#: lib/getopt.c:319
-#, c-format
-msgid "%s: unrecognized option '%s%s'\n"
-msgstr "%s: nerekonata modifilo '%s%s'\n"
-
-#: lib/getopt.c:345
-#, c-format
-msgid "%s: option '%s%s' doesn't allow an argument\n"
-msgstr "%s: modifilo '%s%s' ne permesas argumenton\n"
-
-#: lib/getopt.c:360
-#, c-format
-msgid "%s: option '%s%s' requires an argument\n"
-msgstr "%s: modifilo '%s%s' postulas argumenton\n"
-
-#: lib/getopt.c:621
-#, c-format
-msgid "%s: invalid option -- '%c'\n"
-msgstr "%s: malvalida modifilo -- '%c'\n"
-
-#: lib/getopt.c:636 lib/getopt.c:682
-#, c-format
-msgid "%s: option requires an argument -- '%c'\n"
-msgstr "%s: modifilo postulas argumenton -- '%c'\n"
-
-#: lib/obstack.c:338 lib/obstack.c:340 lib/xalloc-die.c:34
+#: lib/obstack.c:337 lib/obstack.c:339 lib/xalloc-die.c:34
 msgid "memory exhausted"
 msgstr "mankas memoro"
 
@@ -130,83 +130,83 @@ msgstr "mankas memoro"
 #. If you don't know what to put here, please see
 #. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
 #. and use glyphs suitable for your language.
-#: lib/quotearg.c:362
+#: lib/quotearg.c:354
 msgid "`"
 msgstr "‘"
 
-#: lib/quotearg.c:363
+#: lib/quotearg.c:355
 msgid "'"
 msgstr "’"
 
-#: lib/regcomp.c:135
+#: lib/regcomp.c:122
 msgid "Success"
 msgstr "Sukceso"
 
-#: lib/regcomp.c:138
+#: lib/regcomp.c:125
 msgid "No match"
 msgstr "Maltrafo"
 
-#: lib/regcomp.c:141
+#: lib/regcomp.c:128
 msgid "Invalid regular expression"
 msgstr "Nevalida regula esprimo"
 
-#: lib/regcomp.c:144
+#: lib/regcomp.c:131
 msgid "Invalid collation character"
 msgstr "Nevalida kunfanda signo"
 
-#: lib/regcomp.c:147
+#: lib/regcomp.c:134
 msgid "Invalid character class name"
 msgstr "Nevalida nomo de signoklaso"
 
-#: lib/regcomp.c:150
+#: lib/regcomp.c:137
 msgid "Trailing backslash"
 msgstr "Malsuprenstreko ĉe fino"
 
-#: lib/regcomp.c:153
+#: lib/regcomp.c:140
 msgid "Invalid back reference"
 msgstr "Nevalida retroreferenco"
 
-#: lib/regcomp.c:156
+#: lib/regcomp.c:143
 msgid "Unmatched [, [^, [:, [., or [="
 msgstr "Neparigita [, [^, [:, [., aŭ [="
 
-#: lib/regcomp.c:159
+#: lib/regcomp.c:146
 msgid "Unmatched ( or \\("
 msgstr "Neparigita ( aŭ \\("
 
-#: lib/regcomp.c:162
+#: lib/regcomp.c:149
 msgid "Unmatched \\{"
 msgstr "Neparigita \\{"
 
-#: lib/regcomp.c:165
+#: lib/regcomp.c:152
 msgid "Invalid content of \\{\\}"
 msgstr "Nevalida enhavo de \\{\\}"
 
-#: lib/regcomp.c:168
+#: lib/regcomp.c:155
 msgid "Invalid range end"
 msgstr "Nevalida fino de gamo"
 
-#: lib/regcomp.c:171
+#: lib/regcomp.c:158
 msgid "Memory exhausted"
 msgstr "Mankas memoro"
 
-#: lib/regcomp.c:174
+#: lib/regcomp.c:161
 msgid "Invalid preceding regular expression"
 msgstr "Nevalida antaŭa regula esprimo"
 
-#: lib/regcomp.c:177
+#: lib/regcomp.c:164
 msgid "Premature end of regular expression"
 msgstr "Neatendita fino de regula esprimo"
 
-#: lib/regcomp.c:180
+#: lib/regcomp.c:167
 msgid "Regular expression too big"
 msgstr "Regula esprimo tro granda"
 
-#: lib/regcomp.c:183
+#: lib/regcomp.c:170
 msgid "Unmatched ) or \\)"
 msgstr "Neparigita ) aŭ \\)"
 
-#: lib/regcomp.c:688
+#: lib/regcomp.c:650
 msgid "No previous regular expression"
 msgstr "Mankas antaŭa regula esprimo"
 
@@ -232,37 +232,33 @@ msgstr "Pakigita de %s\n"
 msgid "(C)"
 msgstr "©"
 
-#: lib/version-etc.c:85
+#. TRANSLATORS: The %s placeholder is the web address of the GPL license.
+#: lib/version-etc.c:88
+#, c-format
 msgid ""
-"\n"
-"License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl."
-"html>.\n"
+"License GPLv3+: GNU GPL version 3 or later <%s>.\n"
 "This is free software: you are free to change and redistribute it.\n"
 "There is NO WARRANTY, to the extent permitted by law.\n"
-"\n"
 msgstr ""
-"\n"
-"Permeso GPLv3+: GNU GPL versio 3 aŭ posta <https://gnu.org/licenses/gpl."
-"html>.\n"
+"Permeso GPLv3+: GNU GPL versio 3 aŭ posta <%s>.\n"
 "Tio ĉi estas libera programaro: vi estas libera por ŝanĝi kaj redisdoni "
 "ĝin.\n"
 "Ekzistas NENIU GARANTIO, laŭ plej amplekse permesate de la leĝoj.\n"
-"\n"
 
 #. TRANSLATORS: %s denotes an author name.
-#: lib/version-etc.c:102
+#: lib/version-etc.c:105
 #, c-format
 msgid "Written by %s.\n"
 msgstr "Verkita de %s.\n"
 
 #. TRANSLATORS: Each %s denotes an author name.
-#: lib/version-etc.c:106
+#: lib/version-etc.c:109
 #, c-format
 msgid "Written by %s and %s.\n"
 msgstr "Verkita de %s kaj %s.\n"
 
 #. TRANSLATORS: Each %s denotes an author name.
-#: lib/version-etc.c:110
+#: lib/version-etc.c:113
 #, c-format
 msgid "Written by %s, %s, and %s.\n"
 msgstr "Verkita de %s, %s, kaj %s.\n"
@@ -270,7 +266,7 @@ msgstr "Verkita de %s, %s, kaj %s.\n"
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:117
+#: lib/version-etc.c:120
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -282,7 +278,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:124
+#: lib/version-etc.c:127
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -294,7 +290,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:131
+#: lib/version-etc.c:134
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -306,7 +302,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:139
+#: lib/version-etc.c:142
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -318,7 +314,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:147
+#: lib/version-etc.c:150
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -332,7 +328,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:156
+#: lib/version-etc.c:159
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -346,7 +342,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:167
+#: lib/version-etc.c:170
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -361,35 +357,27 @@ msgstr ""
 #. for this package.  Please add _another line_ saying
 #. "Report translation bugs to <...>\n" with the address for translation
 #. bugs (typically your translation team's web or email address).
-#: lib/version-etc.c:245
+#: lib/version-etc.c:249
 #, c-format
-msgid ""
-"\n"
-"Report bugs to: %s\n"
+msgid "Report bugs to: %s\n"
 msgstr ""
-"\n"
 "Raportu program-misojn al: %s\n"
 "Raportu traduk-misojn al: <translation-team-eo@lists.sourceforge.net>\n"
 
-#: lib/version-etc.c:247
+#: lib/version-etc.c:251
 #, c-format
 msgid "Report %s bugs to: %s\n"
 msgstr "Raportu program-misojn de %s al: %s\n"
 
-#: lib/version-etc.c:251
+#: lib/version-etc.c:255 lib/version-etc.c:257
 #, c-format
 msgid "%s home page: <%s>\n"
 msgstr "%s hejm-paĝo: <%s>\n"
 
-#: lib/version-etc.c:253
+#: lib/version-etc.c:260
 #, c-format
-msgid "%s home page: <https://www.gnu.org/software/%s/>\n"
-msgstr "%s hejm-paĝo: <https://www.gnu.org/software/%s/>\n"
-
-#: lib/version-etc.c:256
-msgid "General help using GNU software: <https://www.gnu.org/gethelp/>\n"
-msgstr ""
-"Ĝenerala helpo por uzi programaron GNU: <https://www.gnu.org/gethelp/>\n"
+msgid "General help using GNU software: <%s>\n"
+msgstr "Ĝenerala helpo por uzi programaron GNU: <%s>\n"
 
 #: sed/compile.c:146
 msgid "multiple `!'s"
@@ -506,19 +494,19 @@ msgstr "rikura kodŝanĝo post \\c ne estas permesata"
 
 #: sed/compile.c:193
 msgid "e/r/w commands disabled in sandbox mode"
-msgstr ""
+msgstr "komandoj e/r/w estas malebligitaj en reĝimo de provejo"
 
-#: sed/compile.c:215
+#: sed/compile.c:218
 #, c-format
 msgid "%s: file %s line %lu: %s\n"
 msgstr "%s: dosiero %s linio %lu: %s\n"
 
-#: sed/compile.c:218
+#: sed/compile.c:221
 #, c-format
 msgid "%s: -e expression #%lu, char %lu: %s\n"
 msgstr "%s: -e esprimo #%lu, signo %lu: %s\n"
 
-#: sed/compile.c:1607
+#: sed/compile.c:1623
 #, c-format
 msgid "can't find label for jump to `%s'"
 msgstr "ne povas trovi etikedon por salto al '%s'"
@@ -528,50 +516,50 @@ msgstr "ne povas trovi etikedon por salto al '%s'"
 msgid "case conversion produced an invalid character"
 msgstr "uskleco-konverto produktis malvalidan signon"
 
-#: sed/execute.c:561
+#: sed/execute.c:565
 #, c-format
 msgid "%s: can't read %s: %s\n"
 msgstr "%s: ne povas legi %s: %s\n"
 
-#: sed/execute.c:587
+#: sed/execute.c:591
 #, c-format
 msgid "couldn't edit %s: is a terminal"
 msgstr "ne povis redakti %s: estas terminalo"
 
-#: sed/execute.c:592
+#: sed/execute.c:596
 #, c-format
 msgid "couldn't edit %s: not a regular file"
 msgstr "ne povis redakti %s: ne estas normala dosiero"
 
-#: sed/execute.c:603
+#: sed/execute.c:607
 #, c-format
 msgid "%s: warning: failed to set default file creation context to %s: %s"
 msgstr ""
 "%s: averto: malsukcesis difini aprioran dosier-krean kuntekston al %s: %s"
 
-#: sed/execute.c:611
+#: sed/execute.c:615
 #, c-format
 msgid "%s: warning: failed to get security context of %s: %s"
 msgstr "%s: averto: malsukcesis preni sekurecan kuntekston de %s: %s"
 
-#: sed/execute.c:630 sed/utils.c:188
+#: sed/execute.c:633 sed/utils.c:215
 #, c-format
 msgid "couldn't open temporary file %s: %s"
 msgstr "ne povis malfermi dumtempan dosieron %s: %s"
 
-#: sed/execute.c:1167 sed/execute.c:1366
+#: sed/execute.c:1170 sed/execute.c:1369
 msgid "error in subprocess"
 msgstr "eraro en subprocezo"
 
-#: sed/execute.c:1169
+#: sed/execute.c:1172
 msgid "option `e' not supported"
 msgstr "opcio 'e' ne realigita"
 
-#: sed/execute.c:1347
+#: sed/execute.c:1350
 msgid "`e' command not supported"
 msgstr "komando 'e' ne realigita"
 
-#: sed/execute.c:1662
+#: sed/execute.c:1672
 msgid "no input files"
 msgstr "mankas enig-dosieroj"
 
@@ -588,31 +576,31 @@ msgstr "nevalida referenco \\%d ĉe dekstra flanko de komando 's'"
 msgid "regex input buffer length larger than INT_MAX"
 msgstr "eniga bufro-grando de 'regex' pli granda ol INT_MAX"
 
-#: sed/sed.c:36
+#: sed/sed.c:37
 msgid "Jay Fenlason"
 msgstr "Jay Fenlason"
 
-#: sed/sed.c:37
+#: sed/sed.c:38
 msgid "Tom Lord"
 msgstr "Tom Lord"
 
-#: sed/sed.c:38
+#: sed/sed.c:39
 msgid "Ken Pizzini"
 msgstr "Ken Pizzini"
 
-#: sed/sed.c:39
+#: sed/sed.c:40
 msgid "Paolo Bonzini"
 msgstr "Paolo Bonzini"
 
-#: sed/sed.c:40
-msgid "Jim Meyering"
-msgstr ""
-
 #: sed/sed.c:41
-msgid "Assaf Gordon"
-msgstr ""
+msgid "Jim Meyering"
+msgstr "Jim Meyering"
 
-#: sed/sed.c:124
+#: sed/sed.c:42
+msgid "Assaf Gordon"
+msgstr "AssAssaf Gordonaf Gordon"
+
+#: sed/sed.c:103
 #, c-format
 msgid ""
 "GNU sed home page: <https://www.gnu.org/software/sed/>.\n"
@@ -621,22 +609,37 @@ msgstr ""
 "Hejmpaĝo de GNU sed: <https://www.gnu.org/software/sed/>.\n"
 "Ĝenerala helpo por uzi programaron GNU: <https://www.gnu.org/gethelp/>.\n"
 
-#: sed/sed.c:130
+#: sed/sed.c:109
 #, c-format
 msgid "E-mail bug reports to: <%s>.\n"
 msgstr "Raportu program-erarojn al <%s>.\n"
 
-#: sed/sed.c:138
+#: sed/sed.c:117
+msgid "This sed program was built with SELinux support."
+msgstr "Tiu ĉi programo sed estis kompilita kun subteno al SELinux."
+
+#: sed/sed.c:119
+msgid "SELinux is enabled on this system."
+msgstr "SELinux estas ebligata en tiu ĉi sistemo."
+
+#: sed/sed.c:121
+msgid "SELinux is disabled on this system."
+msgstr "SELinux estas malebligata en tiu ĉi sistemo."
+
+#: sed/sed.c:123
+msgid "This sed program was built without SELinux support."
+msgstr "Tiu ĉi programo sed estis kompilita sen subteno al SELinux."
+
+#: sed/sed.c:133
 #, c-format
 msgid ""
 "Usage: %s [OPTION]... {script-only-if-no-other-script} [input-file]...\n"
 "\n"
 msgstr ""
-"Uzado: %s [OPCIO]... {programo-nur-se-neniu-alia-programo} [enig-"
-"dosiero]...\n"
+"Uzado: %s [OPCIO]... {skripto-nur-se-neniu-alia-skripto} [enig-dosiero]...\n"
 "\n"
 
-#: sed/sed.c:142
+#: sed/sed.c:137
 #, c-format
 msgid ""
 "  -n, --quiet, --silent\n"
@@ -645,36 +648,36 @@ msgstr ""
 "  -n, --quiet, --silent\n"
 "                 subpremi aŭtomatan presadon de ŝablono-spaco\n"
 
-#: sed/sed.c:144
-#, fuzzy, c-format
+#: sed/sed.c:139
+#, c-format
 msgid ""
 "      --debug\n"
 "                 annotate program execution\n"
 msgstr ""
-"  --posix\n"
-"                 malŝalti ĉiujn GNU-ajn aldonaĵojn.\n"
+"      --debug\n"
+"                 protokoli la funkciadon de la programo\n"
 
-#: sed/sed.c:146
+#: sed/sed.c:141
 #, c-format
 msgid ""
 "  -e script, --expression=script\n"
 "                 add the script to the commands to be executed\n"
 msgstr ""
-"  -e programo, --expression=programo\n"
-"                 aldoni la programon al la plenumotaj komandoj\n"
+"  -e skripto, --expression=skripto\n"
+"                 aldoni la skripton al la plenumotaj komandoj\n"
 
-#: sed/sed.c:148
+#: sed/sed.c:143
 #, c-format
 msgid ""
 "  -f script-file, --file=script-file\n"
 "                 add the contents of script-file to the commands to be "
 "executed\n"
 msgstr ""
-"  -f programdosiero, --file=programdosiero\n"
-"                 aldoni la enhavon de programdosiero al la plenumotaj "
+"  -f skriptodosiero, --file=skriptodosiero\n"
+"                 aldoni la enhavon de skriptodosiero al la plenumotaj "
 "komandoj\n"
 
-#: sed/sed.c:152
+#: sed/sed.c:147
 #, c-format
 msgid ""
 "  --follow-symlinks\n"
@@ -683,7 +686,7 @@ msgstr ""
 "  --follow-symlinks\n"
 "                 sekvi simbolajn ligojn, traktante dosierojn surloke\n"
 
-#: sed/sed.c:155
+#: sed/sed.c:150
 #, c-format
 msgid ""
 "  -i[SUFFIX], --in-place[=SUFFIX]\n"
@@ -692,7 +695,7 @@ msgstr ""
 "  -i[SUFIKSO], --in-place[=SUFIKSO]\n"
 "                 redakti dosierojn surloke (savkopii se estas SUFIKSO)\n"
 
-#: sed/sed.c:158
+#: sed/sed.c:153
 #, c-format
 msgid ""
 "  -b, --binary\n"
@@ -703,7 +706,7 @@ msgstr ""
 "                 malfermi dosierojn en binara reĝimo (linifinoj ne traktiĝas "
 "speciale)\n"
 
-#: sed/sed.c:162
+#: sed/sed.c:157
 #, c-format
 msgid ""
 "  -l N, --line-length=N\n"
@@ -712,7 +715,7 @@ msgstr ""
 "  -l N, --line-length=N\n"
 "                 specifi la deziratan linilongon por la komando 'l'\n"
 
-#: sed/sed.c:164
+#: sed/sed.c:159
 #, c-format
 msgid ""
 "  --posix\n"
@@ -721,18 +724,18 @@ msgstr ""
 "  --posix\n"
 "                 malŝalti ĉiujn GNU-ajn aldonaĵojn.\n"
 
-#: sed/sed.c:166
+#: sed/sed.c:161
 #, c-format
 msgid ""
 "  -E, -r, --regexp-extended\n"
 "                 use extended regular expressions in the script\n"
 "                 (for portability use POSIX -E).\n"
 msgstr ""
-" -E, -r, --regexp-extended\n"
-"                 uzi etenditajn regulajn esprimojn en la skripto.\n"
+"  -E, -r, --regexp-extended\n"
+"                 uzi etenditajn regulajn esprimojn en la skripto\n"
 "                 (por porteblo uzu POSIX -E).\n"
 
-#: sed/sed.c:169
+#: sed/sed.c:164
 #, c-format
 msgid ""
 "  -s, --separate\n"
@@ -743,7 +746,7 @@ msgstr ""
 "                 konsideri dosierojn kiel apartajn anstataŭ ol unuopa,\n"
 "                 kontinua longa fluo.\n"
 
-#: sed/sed.c:172
+#: sed/sed.c:167
 #, c-format
 msgid ""
 "      --sandbox\n"
@@ -753,7 +756,7 @@ msgstr ""
 "                 operacii laŭ reĝimo de provejo (malebligi komandojn e/r/"
 "w).\n"
 
-#: sed/sed.c:174
+#: sed/sed.c:169
 #, c-format
 msgid ""
 "  -u, --unbuffered\n"
@@ -766,7 +769,7 @@ msgstr ""
 "kaj\n"
 "                 malplenigi la eligobufrojn pli ofte\n"
 
-#: sed/sed.c:177
+#: sed/sed.c:172
 #, c-format
 msgid ""
 "  -z, --null-data\n"
@@ -775,17 +778,17 @@ msgstr ""
 "  -z, --null-data\n"
 "                 apartigi liniojn per signoj NUL\n"
 
-#: sed/sed.c:179
+#: sed/sed.c:174
 #, c-format
 msgid "      --help     display this help and exit\n"
 msgstr "      --help     montri ĉi tiun helpon kaj eliri\n"
 
-#: sed/sed.c:180
+#: sed/sed.c:175
 #, c-format
 msgid "      --version  output version information and exit\n"
 msgstr "      --version  montri version kaj eliri\n"
 
-#: sed/sed.c:181
+#: sed/sed.c:176
 #, c-format
 msgid ""
 "\n"
@@ -797,73 +800,106 @@ msgid ""
 msgstr ""
 "\n"
 "Se neniu opcio -e, --expression, -f aŭ --file estas donita, tiam la unua\n"
-"ne-opcia argumento estas prenata kiel la sed-programeto interpretota. Ĉiuj\n"
+"ne-opcia argumento estas prenata kiel la sed-skripto interpretota. Ĉiuj\n"
 "restantaj argumentoj estas nomoj de enig-dosieroj; se neniu enigdosiero\n"
 "estas specifita, tiam la normala enigo estas legata.\n"
 "\n"
 
-#: sed/sed.c:373
+#: sed/sed.c:369
 msgid "failed to set binary mode on STDIN"
-msgstr ""
+msgstr "malsukcesis difini ciferecan reĝimon por STDIN"
 
-#: sed/sed.c:375
+#: sed/sed.c:371
 msgid "failed to set binary mode on STDOUT"
-msgstr ""
+msgstr "malsukcesis difini ciferecan reĝimon por STDOUT"
 
-#: sed/utils.c:77 sed/utils.c:395
-#, c-format
-msgid "cannot remove %s: %s"
-msgstr "ne povas forigi %s: %s"
-
-#: sed/utils.c:146
+#: sed/utils.c:129
 #, c-format
 msgid "couldn't open file %s: %s"
 msgstr "ne povis malfermi dosieron %s: %s"
 
-#: sed/utils.c:165
+#: sed/utils.c:148
 #, c-format
 msgid "couldn't attach to %s: %s"
 msgstr "ne povis alligiĝi al %s: %s"
 
-#: sed/utils.c:192
+#: sed/utils.c:207
 #, c-format
 msgid "failed to set binary mode on '%s'"
-msgstr ""
+msgstr "malsukcesis difini ciferecan reĝimon por '%s'"
 
-#: sed/utils.c:207
+#: sed/utils.c:228
 #, c-format
 msgid "couldn't write %llu item to %s: %s"
 msgid_plural "couldn't write %llu items to %s: %s"
 msgstr[0] "ne povis skribi %llu eron al %s: %s"
 msgstr[1] "ne povis skribi %llu erojn al %s: %s"
 
-#: sed/utils.c:219 sed/utils.c:238
+#: sed/utils.c:240 sed/utils.c:259
 #, c-format
 msgid "read error on %s: %s"
 msgstr "legeraro ĉe %s: %s"
 
-#: sed/utils.c:336
+#: sed/utils.c:358
+#, fuzzy, c-format
+msgid "couldn't readlink %s: %s"
+msgstr "ne povis sekvi simbolan ligon %s: %s"
+
+#: sed/utils.c:361
 #, c-format
 msgid "couldn't follow symlink %s: %s"
 msgstr "ne povis sekvi simbolan ligon %s: %s"
 
-#: sed/utils.c:370
-#, c-format
-msgid "cannot stat %s: %s"
-msgstr "ne povas stat-i %s: %s"
-
-#: sed/utils.c:400
+#: sed/utils.c:408
 #, c-format
 msgid "cannot rename %s: %s"
 msgstr "ne povas renomi %s: %s"
+
+#, c-format
+#~ msgid "cannot stat %s: %s"
+#~ msgstr "ne povas stat-i %s: %s"
+
+#, c-format
+#~ msgid "cannot remove %s: %s"
+#~ msgstr "ne povas forigi %s: %s"
+
+#, c-format
+#~ msgid "%s: option '%s%s' is ambiguous\n"
+#~ msgstr "%s: modifilo '%s%s' estas plursenca\n"
+
+#, c-format
+#~ msgid "%s: option '%s%s' is ambiguous; possibilities:"
+#~ msgstr "%s: modifilo '%s%s' estas plursenca; eblecoj:"
+
+#, c-format
+#~ msgid "%s: unrecognized option '%s%s'\n"
+#~ msgstr "%s: nerekonata modifilo '%s%s'\n"
+
+#, c-format
+#~ msgid "%s: option '%s%s' doesn't allow an argument\n"
+#~ msgstr "%s: modifilo '%s%s' ne permesas argumenton\n"
+
+#, c-format
+#~ msgid "%s: option '%s%s' requires an argument\n"
+#~ msgstr "%s: modifilo '%s%s' postulas argumenton\n"
+
+#, c-format
+#~ msgid "%s: invalid option -- '%c'\n"
+#~ msgstr "%s: malvalida modifilo -- '%c'\n"
+
+#, c-format
+#~ msgid "%s: option requires an argument -- '%c'\n"
+#~ msgstr "%s: modifilo postulas argumenton -- '%c'\n"
+
+#~ msgid "%s home page: <https://www.gnu.org/software/%s/>\n"
+#~ msgstr "%s hejm-paĝo: <https://www.gnu.org/software/%s/>\n"
 
 #~ msgid ""
 #~ "  -R, --regexp-perl\n"
 #~ "                 use Perl 5's regular expressions syntax in the script.\n"
 #~ msgstr ""
 #~ "  -R, --regexp-perl\n"
-#~ "                 uzi sintakso de Perl 5 por regulaj esprimoj en "
-#~ "programo.\n"
+#~ "                 uzi sintakso de Perl 5 por regulaj esprimoj en skripto.\n"
 
 #~ msgid "%s: option '--%s' doesn't allow an argument\n"
 #~ msgstr "%s: modifilo '--%s' ne permesas argumenton\n"

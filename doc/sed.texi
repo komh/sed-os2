@@ -34,7 +34,7 @@
 This file documents version @value{VERSION} of
 @value{SSED}, a stream editor.
 
-Copyright @copyright{} 1998-2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1998--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -124,12 +124,15 @@ Normally @command{sed} is invoked like this:
 sed SCRIPT INPUTFILE...
 @end example
 
-For example, to replace all occurrences of @samp{hello} to @samp{world}
+For example, to change every @samp{hello} to @samp{world}
 in the file @file{input.txt}:
 
 @example
-sed 's/hello/world/' input.txt > output.txt
+sed 's/hello/world/g' input.txt > output.txt
 @end example
+
+Without the @samp{g} (global) modifier, @command{sed} affects
+only the first instance per line.
 
 @cindex stdin
 @cindex standard input
@@ -138,9 +141,9 @@ If you do not specify @var{INPUTFILE}, or if @var{INPUTFILE} is @file{-},
 commands are equivalent:
 
 @example
-sed 's/hello/world/' input.txt > output.txt
-sed 's/hello/world/' < input.txt > output.txt
-cat input.txt | sed 's/hello/world/' - > output.txt
+sed 's/hello/world/g' input.txt > output.txt
+sed 's/hello/world/g' < input.txt > output.txt
+cat input.txt | sed 's/hello/world/g' - > output.txt
 @end example
 
 @cindex stdout
@@ -586,7 +589,7 @@ sed '30,35d' input.txt > output.txt
 @cindex regular expression, example
 @cindex example, regular expression
 The following example prints all input until a line
-starting with the word @samp{foo} is found. If such line is found,
+starting with the string @samp{foo} is found. If such line is found,
 @command{sed} will terminate with exit status 42.
 If such line was not found (and no other error occurred), @command{sed}
 will exit with status 0.
@@ -615,15 +618,15 @@ operations: deleting any lines matching the regular expression @code{/^foo/},
 and replacing all occurrences of the string @samp{hello} with @samp{world}:
 
 @example
-sed '/^foo/d ; s/hello/world/' input.txt > output.txt
+sed '/^foo/d ; s/hello/world/g' input.txt > output.txt
 
-sed -e '/^foo/d' -e 's/hello/world/' input.txt > output.txt
+sed -e '/^foo/d' -e 's/hello/world/g' input.txt > output.txt
 
 echo '/^foo/d' > script.sed
-echo 's/hello/world/' >> script.sed
+echo 's/hello/world/g' >> script.sed
 sed -f script.sed input.txt > output.txt
 
-echo 's/hello/world/' > script2.sed
+echo 's/hello/world/g' > script2.sed
 sed -e '/^foo/d' -f script2.sed input.txt > output.txt
 @end example
 
@@ -1188,7 +1191,7 @@ See the @command{tr} command from GNU coreutils for similar functionality.
 Appending @var{text} after a line. This is a GNU extension
 to the standard @code{a} command - see below for details.
 
-Example: Add the word @samp{hello} after the second line:
+Example: Add @samp{hello} after the second line:
 @codequoteundirected on
 @codequotebacktick on
 @example
@@ -1277,7 +1280,7 @@ $ sed -e '2a\' -e "$VAR"
 insert @var{text} before a line. This is a GNU extension
 to the standard @code{i} command - see below for details.
 
-Example: Insert the word @samp{hello} before the second line:
+Example: Insert @samp{hello} before the second line:
 @codequoteundirected on
 @codequotebacktick on
 @example
@@ -1510,6 +1513,10 @@ standard input.
 @cindex @value{SSEDEXT}, two addresses supported by most commands
 As a GNU extension, this command accepts two addresses. The
 file will then be reread and inserted on each of the addressed lines.
+
+As a @value{SSED} extension, the @code{r} command accepts a zero address,
+inserting a file @emph{before} the first line of the input
+@pxref{Adding a header to multiple files}.
 
 @item w @var{filename}
 @findex w (write file) command
@@ -2015,7 +2022,7 @@ a
 @item @code{s///[we]} (substitute with @code{e} or @code{w} flags)
 
 In a substitution command, the @code{w} flag writes the substitution
-result to a file, and the @code{e} flag executes the subsitution result
+result to a file, and the @code{e} flag executes the substitution result
 as a shell command.  As with the @code{r/R/w/W/e} commands, these
 must be terminated with a newline.  If whitespace, comments or semicolons
 are found, they will be included in the shell command or filename, leading to
@@ -2046,6 +2053,7 @@ $ ls -1
 * Numeric Addresses::                 selecting lines by numbers
 * Regexp Addresses::                  selecting lines by text matching
 * Range Addresses::                   selecting a range of lines
+* Zero Address::                      Using address @code{0}
 @end menu
 
 @node Addresses overview
@@ -2054,7 +2062,7 @@ $ ls -1
 @cindex addresses, numeric
 @cindex numeric addresses
 Addresses determine on which line(s) the @command{sed} command will be
-executed. The following command replaces the word @samp{hello}
+executed. The following command replaces any first occurrence of @samp{hello}
 with @samp{world} only on line 144:
 
 @codequoteundirected on
@@ -2067,9 +2075,12 @@ sed '144s/hello/world/' input.txt > output.txt
 
 
 
-If no addresses are given, the command is performed on all lines.
-The following command replaces the word @samp{hello} with @samp{world}
-on all lines in the input file:
+If no address is specified, the command is performed on all lines.
+The following command replaces @samp{hello} with @samp{world},
+targeting every line of the input file.
+However, note that it modifies only the first instance of @samp{hello}
+on each line.
+Use the @samp{g} modifier to affect every instance on each affected line.
 
 @codequoteundirected on
 @codequotebacktick on
@@ -2085,8 +2096,8 @@ sed 's/hello/world/' input.txt > output.txt
 @cindex regular expression addresses
 Addresses can contain regular expressions to match lines based
 on content instead of line numbers. The following command replaces
-the word @samp{hello} with @samp{world} only in lines
-containing the word @samp{apple}:
+@samp{hello} with @samp{world} only on lines
+containing the string @samp{apple}:
 
 @codequoteundirected on
 @codequotebacktick on
@@ -2103,8 +2114,8 @@ sed '/apple/s/hello/world/' input.txt > output.txt
 An address range is specified with two addresses separated by a comma
 (@code{,}). Addresses can be numeric, regular expressions, or a mix of
 both.
-The following command replaces the word @samp{hello} with @samp{world}
-only in lines 4 to 17 (inclusive):
+The following command replaces @samp{hello} with @samp{world}
+only on lines 4 to 17 (inclusive):
 
 @codequoteundirected on
 @codequotebacktick on
@@ -2124,17 +2135,17 @@ Appending the @code{!} character to the end of an address
 specification (before the command letter) negates the sense of the
 match.  That is, if the @code{!} character follows an address or an
 address range, then only lines which do @emph{not} match the addresses
-will be selected. The following command replaces the word @samp{hello}
-with @samp{world} only in lines @emph{not} containing the word
+will be selected. The following command replaces @samp{hello}
+with @samp{world} only on lines @emph{not} containing the string
 @samp{apple}:
 
 @example
 sed '/apple/!s/hello/world/' input.txt > output.txt
 @end example
 
-The following command replaces the word @samp{hello} with
-@samp{world} only in lines 1 to 3 and 18 till the last line of the input file
-(i.e. excluding lines 4 to 17):
+The following command replaces @samp{hello} with
+@samp{world} only on lines 1 to 3 and from line 18 to the last line of the
+input file (i.e. excluding lines 4 to 17):
 
 @example
 sed '4,17!s/hello/world/' input.txt > output.txt
@@ -2380,6 +2391,7 @@ $ seq 10 | sed -n '4,1p'
 4
 @end example
 
+@anchor{Zero Address Regex Range}
 @cindex Special addressing forms
 @cindex Range with start address of zero
 @cindex Zero, as range start address
@@ -2403,10 +2415,6 @@ except that if @var{addr2} matches the very first line of input the
 the @code{1,/@var{regexp}/} form will match the beginning of its range and
 hence make the range span up to the @emph{second} occurrence of the
 regular expression.
-
-Note that this is the only place where the @code{0} address makes
-sense; there is no 0-th line and commands which are given the @code{0}
-address in any other way will give an error.
 
 The following examples demonstrate the difference between starting
 with address 1 and 0:
@@ -2452,6 +2460,24 @@ $ seq 10 | sed -n '6,~4p'
 
 
 
+@node Zero Address
+@section Zero Address
+@cindex Zero Address
+As a @value{SSED} extension, @code{0} address can be used in two cases:
+@enumerate
+@item
+In a regex range addresses as @code{0,/@var{regexp}/}
+(@pxref{Zero Address Regex Range}).
+@item
+With the @code{r} command, inserting a file before the first line
+(@pxref{Adding a header to multiple files}).
+@end enumerate
+
+Note that these are the only places where the @code{0} address makes
+sense; Commands which are given the @code{0} address in any
+other way will give an error.
+
+
 
 @node sed regular expressions
 @chapter Regular Expressions: selecting text
@@ -2466,7 +2492,7 @@ $ seq 10 | sed -n '6,~4p'
 * regexp extensions::        Additional regular expression commands
 * Back-references and Subexpressions:: Back-references and Subexpressions
 * Escapes::                  Specifying special characters
-* Locale Considerations::    Multibyte characters and locale considrations
+* Locale Considerations::    Multibyte characters and locale considerations
 @end menu
 
 @node Regular Expressions Overview
@@ -2485,8 +2511,7 @@ themselves in a pattern, and match the corresponding characters.
 Regular expressions in @command{sed} are specified between two
 slashes.
 
-The following command prints lines containing the word
-@samp{hello}:
+The following command prints lines containing the string @samp{hello}:
 
 @example
 sed -n '/hello/p'
@@ -2623,7 +2648,7 @@ postfixed regular expression can also be followed by @code{*}; for
 example, @code{a**} is equivalent to @code{a*}.  POSIX
 1003.1-2001 says that @code{*} stands for itself when it appears at
 the start of a regular expression or subexpression, but many
-nonGNU implementations do not support this and portable
+non-GNU implementations do not support this and portable
 scripts should instead use @code{\*} in these contexts.
 @item .
 Matches any character, including newline.
@@ -2636,8 +2661,8 @@ pattern space.
 In most scripts, pattern space is initialized to the content of each
 line (@pxref{Execution Cycle, , How @code{sed} works}).  So, it is a
 useful simplification to think of @code{^#include} as matching only
-lines where @samp{#include} is the first thing on line---if there are
-spaces before, for example, the match fails.  This simplification is
+lines where @samp{#include} is the first thing on the line---if there is
+any preceding space, for example, the match fails.  This simplification is
 valid as long as the original content of pattern space is not modified,
 for example with an @code{s} command.
 
@@ -2862,7 +2887,7 @@ A @dfn{bracket expression} is a list of characters enclosed by @samp{[} and
 It matches any single character in that list;
 if the first character of the list is the caret @samp{^},
 then it matches any character @strong{not} in the list.
-For example, the following command replaces the words
+For example, the following command replaces the strings
 @samp{gray} or @samp{grey} with @samp{blue}:
 
 @example
@@ -3319,7 +3344,7 @@ the existing ``word boundary'' meaning.
 
 @value{SSED} processes escape sequences @emph{before} passing
 the text onto the regular-expression matching of the @command{s///} command
-and Address matching. Thus the follwing two commands are equivalent
+and Address matching. Thus the following two commands are equivalent
 (@samp{0x5e} is the hexadecimal @sc{ascii} value of the character @samp{^}):
 
 @codequoteundirected on
@@ -4130,6 +4155,7 @@ Some exotic examples:
 * Reverse chars of lines::
 * Text search across multiple lines::
 * Line length adjustment::
+* Adding a header to multiple files::
 
 Emulating standard utilities:
 * tac::                             Reverse lines of files
@@ -4718,9 +4744,8 @@ See the GNU @command{coreutils} manual for an alternative solution using
 @node Line length adjustment
 @section Line length adjustment
 
-This section uses @code{N} and @code{D} commands to search for
-consecutive words spanning multiple lines, and the @code{b} command for
-branching.
+This section uses @code{N} and @code{P} commands to read and write
+lines, and the @code{b} command for branching.
 @xref{Multiline techniques} and @ref{Branching and flow control}.
 
 This (somewhat contrived) example deal with formatting and wrapping
@@ -4749,7 +4774,7 @@ $ cat wrap40.sed
 # outer loop
 :x
 
-# Appead a newline followed by the next input line to the pattern buffer
+# Append a newline followed by the next input line to the pattern buffer
 N
 
 # Remove all newlines from the pattern buffer
@@ -4800,6 +4825,131 @@ t was the age of foolishness,
 @codequoteundirected off
 @codequotebacktick off
 
+
+
+
+@node Adding a header to multiple files
+@section Adding a header to multiple files
+
+@value{SSED} can be used to safely modify multiple files at once.
+
+@exdent Add a single line to the beginning of source code files:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+sed -i '1i/* Copyright (C) FOO BAR */' *.c
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@exdent Adding a few lines is possible using @samp{\n} in the text:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+sed -i '1i/*\n * Copyright (C) FOO BAR\n * Created by Jane Doe\n */' *.c
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+To add multiple lines from another file, use @code{0rFILE}.
+A typical use case is adding a license notice header to all files:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+## Create the header file:
+$ cat<<'EOF'>LIC.TXT
+/*
+    Copyright (C) 1989-2021 FOO BAR
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3, or (at your option)
+    any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; If not, see <https://www.gnu.org/licenses/>.
+*/
+EOF
+
+## Add the file at the beginning of all source code files:
+$ sed -i '0rLIC.TXT' *.cpp *.h
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+
+With script files (e.g. @file{.sh},@file{.py},@file{.pl} files)
+the license notice typically appears @emph{after} the first line (the
+'shebang' @samp{#!} line). The @code{1rFILE} command will add @file{FILE}
+@emph{after} the first line:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+## Create the header file:
+$ cat<<'EOF'>LIC.TXT
+##
+## Copyright (C) 1989-2021 FOO BAR
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3, or (at your option)
+## any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; If not, see <https://www.gnu.org/licenses/>.
+##
+##
+EOF
+
+## Add the file at the beginning of all source code files:
+$ sed -i '1rLIC.TXT' *.py *.sh
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+The above @command{sed} commands can be combined with @command{find}
+to locate files in all subdirectories, @command{xargs} to run additional
+commands on selected files and @command{grep} to filter out files that already
+contain a copyright notice:
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+find \( -iname '*.cpp' -o -iname '*.c' -o -iname '*.h' \) \
+    | xargs grep -Li copyright \
+    | xargs -r sed -i '0rLIC.TXT'
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+@exdent Or a slightly safe version (handling files with spaces and newlines):
+
+@codequoteundirected on
+@codequotebacktick on
+@example
+find \( -iname '*.cpp' -o -iname '*.c' -o -iname '*.h' \) -print0 \
+    | xargs -0 grep -Z -Li copyright \
+    | xargs -0 -r sed -i '0rLIC.TXT'
+@end example
+@codequoteundirected off
+@codequotebacktick off
+
+Note: using the @code{0} address with @code{r} command requires @value{SSED}
+version 4.9 or later. @xref{Zero Address}.
 
 
 
@@ -5658,7 +5808,7 @@ in a read-only directory, and will break hard or symbolic links when
 
 There is no line 0.  0 is a special address that is only used to treat
 addresses like @code{0,/@var{RE}/} as active when the script starts: if
-you write @code{1,/abc/d} and the first line includes the word @samp{abc},
+you write @code{1,/abc/d} and the first line includes the string @samp{abc},
 then that match would be ignored because address ranges must span at least
 two lines (barring the end of the file); but what you probably wanted is
 to delete every line up to the first one including @samp{abc}, and this

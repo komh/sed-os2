@@ -1,9 +1,9 @@
 /* Test of <alignof.h>.
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -23,8 +23,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "verify.h"
-
 typedef long double longdouble;
 typedef struct { char a[1]; } struct1;
 typedef struct { char a[2]; } struct2;
@@ -33,7 +31,7 @@ typedef struct { char a[4]; } struct4;
 
 #define CHECK(type) \
   typedef struct { char slot1; type slot2; } type##_helper; \
-  verify (alignof_slot (type) == offsetof (type##_helper, slot2)); \
+  static_assert (alignof_slot (type) == offsetof (type##_helper, slot2)); \
   const int type##_slot_alignment = alignof_slot (type); \
   const int type##_type_alignment = alignof_type (type);
 

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Test misc.
 
-# Copyright (C) 2017-2018 Free Software Foundation, Inc.
+# Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1197,6 +1197,8 @@ s,.*[^\/],,
      ['bug30794_1', "s/z/\\\\x5cA/",  {IN=>'z'}, {OUT => "\\A"}],
      ['bug30794_2', "s/z/\\\\x5c/",   {IN=>'z'}, {OUT => "\\"}],
      ['bug30794_3', "s/z/\\\\x5c1/",  {IN=>'z'}, {OUT => "\\1"}],
+
+     ['bug40242', q('sn\nnXn'),  {IN=>'n'}, {OUT => 'X'}],
     );
 
 my $save_temps = $ENV{SAVE_TEMPS};

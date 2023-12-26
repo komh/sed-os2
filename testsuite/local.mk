@@ -1,4 +1,4 @@
-# Copyright (C) 2016-2018 Free Software Foundation, Inc.
+# Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ TEST_EXTENSIONS = .sh .pl
 if HAVE_PERL
 TESTSUITE_PERL = $(PERL)
 else
-TESTSUITE_PERL = $(SHELL) $(srcdir)/no-perl
+TESTSUITE_PERL = $(SHELL) $(srcdir)/testsuite/no-perl
 endif
 
 # Options passed to the perl invocations running the perl test scripts.
@@ -47,6 +47,7 @@ T =					\
   testsuite/bug32271-1.sh		\
   testsuite/bug32271-2.sh		\
   testsuite/cmd-l.sh			\
+  testsuite/cmd-0r.sh			\
   testsuite/cmd-R.sh			\
   testsuite/colon-with-no-label.sh	\
   testsuite/comment-n.sh		\
@@ -119,8 +120,6 @@ TESTS = $(SEDTESTS) $(T)
 
 SEDTESTS =
 
-noinst_HEADERS += testsuite/testcases.h testsuite/ptestcases.h
-
 check_PROGRAMS = testsuite/get-mb-cur-max testsuite/test-mbrtowc
 testsuite_get_mb_cur_max_LDADD = lib/libsed.a $(INTLLIBS)
 testsuite_test_mbrtowc_LDADD = lib/libsed.a $(INTLLIBS)
@@ -161,10 +160,11 @@ TESTS_ENVIRONMENT =				\
   abs_top_builddir='$(abs_top_builddir)'	\
   abs_top_srcdir='$(abs_top_srcdir)'		\
   abs_srcdir='$(abs_srcdir)'			\
-  built_programs=sed;				\
+  built_programs=sed				\
   srcdir='$(srcdir)'				\
   top_srcdir='$(top_srcdir)'			\
   CC='$(CC)'					\
+  CONFIG_HEADER='$(CONFIG_HEADER)'		\
   SED_TEST_NAME=`echo $$tst|sed 's,^\./,,;s,/,-,g'` \
   MAKE=$(MAKE)					\
   MALLOC_PERTURB_=$(MALLOC_PERTURB_)		\
@@ -183,7 +183,6 @@ EXTRA_DIST += \
 	testsuite/CuTmpdir.pm					\
 	testsuite/init.sh init.cfg \
 	testsuite/envvar-check \
-	testsuite/PCRE.tests testsuite/BOOST.tests testsuite/SPENCER.tests \
 	testsuite/8bit.good \
 	testsuite/8bit.inp \
 	testsuite/binary.sed \
@@ -199,6 +198,7 @@ EXTRA_DIST += \
 	testsuite/madding.good \
 	testsuite/madding.inp \
 	testsuite/madding.sed \
+	testsuite/no-perl \
 	testsuite/uniq.good \
 	testsuite/uniq.inp \
 	testsuite/uniq.sed \

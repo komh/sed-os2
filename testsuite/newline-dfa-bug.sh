@@ -2,7 +2,7 @@
 # sed may access to uninitialized memory if transit to 15th dfa state
 # with newline.  This bug affected sed version 4.3.
 
-# Copyright (C) 2017-2018 Free Software Foundation, Inc.
+# Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,6 +31,9 @@ valgrind --quiet --error-exitcode=1 \
 # FIXME: remove in 2018 or when CentOS 5 is no longer officially supported
 grep 'valgrind: .*Assertion.*failed' err > /dev/null \
   && skip_ 'you seem to have a buggy version of valgrind'
+
+# Remove any valgrind-added diagnostics from stderr.
+sed -i '/^==/d' err
 
 compare exp out || fail=1
 compare /dev/null err || fail=1

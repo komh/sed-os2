@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2017-2018 Free Software Foundation, Inc.
+# Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,11 @@
 . "${srcdir=.}/testsuite/init.sh"; path_prepend_ ./sed
 print_ver_ sed
 require_selinux_
+
+sed --version | grep "with SELinux" > /dev/null \
+  || skip_ "sed built without SELinux support"
+sed --version | grep "^SELinux is enabled" > /dev/null \
+  || skip_ "sed reports SELinux is disabled on this system"
 
 touch a || framework_failure_
 chcon -u system_u a || skip_ "chcon doesn't work"

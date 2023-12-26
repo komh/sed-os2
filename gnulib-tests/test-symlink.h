@@ -1,9 +1,9 @@
 /* Tests of symlink.
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -67,7 +67,8 @@ test_symlink (int (*func) (char const *, char const *), bool print)
   ASSERT (errno == EEXIST);
   errno = 0;
   ASSERT (func ("nowhere", BASE "dir/") == -1);
-  ASSERT (errno == EEXIST || errno == EINVAL);
+  ASSERT (errno == EEXIST || errno == EINVAL
+          || errno == ENOENT /* Lustre FS on Linux */);
   ASSERT (close (creat (BASE "file", 0600)) == 0);
   errno = 0;
   ASSERT (func ("nowhere", BASE "file") == -1);

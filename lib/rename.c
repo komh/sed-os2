@@ -1,18 +1,18 @@
 /* Work around rename bugs in some systems.
 
-   Copyright (C) 2001-2003, 2005-2006, 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2003, 2005-2006, 2009-2022 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Volker Borchert, Eric Blake.  */
@@ -29,7 +29,6 @@
    existing files.  */
 
 # include <errno.h>
-# include <stdbool.h>
 # include <stdlib.h>
 # include <sys/stat.h>
 # include <unistd.h>
@@ -38,6 +37,10 @@
 # include <windows.h>
 
 # include "dirname.h"
+
+/* Don't assume that UNICODE is not defined.  */
+# undef MoveFileEx
+# define MoveFileEx MoveFileExA
 
 /* Rename the file SRC to DST.  This replacement is necessary on
    Windows, on which the system rename function will not replace
@@ -161,10 +164,8 @@ rpl_rename (char const *src, char const *dst)
         }
       if (rmdir (dst))
         {
-          error = errno;
           free (src_temp);
           free (dst_temp);
-          errno = error;
           return -1;
         }
       free (src_temp);
@@ -285,7 +286,7 @@ rpl_rename (char const *src, char const *dst)
   char *dst_temp = (char *) dst;
   bool src_slash;
   bool dst_slash;
-  bool dst_exists _GL_UNUSED;
+  _GL_UNUSED bool dst_exists;
   int ret_val = -1;
   int rename_errno = ENOTDIR;
   struct stat src_st;

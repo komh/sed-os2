@@ -1,5 +1,5 @@
 /*  GNU SED, a batch stream editor.
-    Copyright (C) 1989-2018 Free Software Foundation, Inc.
+    Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -104,7 +104,7 @@ struct input {
 /* Have we done any replacements lately?  This is used by the `t' command. */
 static bool replaced = false;
 
-/* The current output file (stdout if -i is not being used. */
+/* The current output file (stdout if -i is not being used).  */
 static struct output output_file;
 
 /* The `current' input line. */
@@ -468,6 +468,26 @@ release_append_queue (void)
 }
 
 static void
+print_file (const char* infname, FILE* outf)
+{
+  char buf[FREAD_BUFFER_SIZE];
+  size_t cnt;
+  FILE *fp;
+
+  /* "If _fname_ does not exist or cannot be read, it shall
+     be treated as if it were an empty file, causing no error
+     condition."  IEEE Std 1003.2-1992
+     So, don't fail. */
+  fp = ck_fopen (infname, read_mode, false);
+  if (fp)
+    {
+      while ((cnt = ck_fread (buf, 1, sizeof buf, fp)) > 0)
+        ck_fwrite (buf, 1, cnt, outf);
+      ck_fclose (fp);
+    }
+}
+
+static void
 dump_append_queue (void)
 {
   struct append_queue *p;
@@ -479,23 +499,7 @@ dump_append_queue (void)
         ck_fwrite (p->text, 1, p->textlen, output_file.fp);
 
       if (p->fname)
-        {
-          char buf[FREAD_BUFFER_SIZE];
-          size_t cnt;
-          FILE *fp;
-
-          /* "If _fname_ does not exist or cannot be read, it shall
-             be treated as if it were an empty file, causing no error
-             condition."  IEEE Std 1003.2-1992
-             So, don't fail. */
-          fp = ck_fopen (p->fname, read_mode, false);
-          if (fp)
-            {
-              while ((cnt = ck_fread (buf, 1, sizeof buf, fp)) > 0)
-                ck_fwrite (buf, 1, cnt, output_file.fp);
-              ck_fclose (fp);
-            }
-        }
+        print_file (p->fname, output_file.fp);
     }
 
   flush_output (output_file.fp);
@@ -572,7 +576,7 @@ open_next_file (const char *name, struct input *input)
     {
       int input_fd;
       char *tmpdir, *p;
-      security_context_t old_fscreatecon;
+      char *old_fscreatecon;
       int reset_fscreatecon = 0;
       memset (&old_fscreatecon, 0, sizeof (old_fscreatecon));
 
@@ -593,7 +597,7 @@ open_next_file (const char *name, struct input *input)
 
       if (is_selinux_enabled () > 0)
         {
-          security_context_t con;
+          char *con;
           if (lgetfilecon (input->in_file_name, &con) != -1)
             {
               /* Save and restore the old context for the sake of w and W
@@ -616,7 +620,6 @@ open_next_file (const char *name, struct input *input)
 
       output_file.fp = ck_mkstemp (&input->out_file_name, tmpdir, "sed",
                                    write_mode);
-      register_cleanup_file (input->out_file_name);
       output_file.missing_newline = false;
       free (tmpdir);
 
@@ -670,11 +673,11 @@ closedown (struct input *input)
       if (strcmp (in_place_extension, "*") != 0)
         {
           char *backup_file_name = get_backup_file_name (target_name);
-          ck_rename (target_name, backup_file_name, input->out_file_name);
+          ck_rename (target_name, backup_file_name);
           free (backup_file_name);
         }
 
-      ck_rename (input->out_file_name, target_name, input->out_file_name);
+      ck_rename (input->out_file_name, target_name);
       cancel_cleanup ();
       free (input->out_file_name);
     }
@@ -1347,7 +1350,7 @@ execute_program (struct vector *vec, struct input *input)
               panic (_("`e' command not supported"));
 #else
               FILE *pipe_fp;
-              int cmd_length = cur_cmd->x.cmd_txt.text_length;
+              size_t cmd_length = cur_cmd->x.cmd_txt.text_length;
               line_reset (&s_accum, NULL);
 
               if (!cmd_length)
@@ -1367,7 +1370,7 @@ execute_program (struct vector *vec, struct input *input)
 
               {
                 char buf[4096];
-                int n;
+                size_t n;
                 while (!feof (pipe_fp))
                   if ((n = fread (buf, sizeof (char), 4096, pipe_fp)) > 0)
                     {
@@ -1505,10 +1508,17 @@ execute_program (struct vector *vec, struct input *input)
               return cur_cmd->x.int_arg == -1 ? 0 : cur_cmd->x.int_arg;
 
             case 'r':
-              if (cur_cmd->x.fname)
+              if (cur_cmd->x.readcmd.fname)
                 {
-                  struct append_queue *aq = next_append_slot ();
-                  aq->fname = cur_cmd->x.fname;
+                  if (cur_cmd->x.readcmd.append)
+                    {
+                      struct append_queue *aq = next_append_slot ();
+                      aq->fname = cur_cmd->x.readcmd.fname;
+                    }
+                  else
+                    {
+                      print_file (cur_cmd->x.readcmd.fname, output_file.fp);
+                    }
                 }
               break;
 
@@ -1518,7 +1528,7 @@ execute_program (struct vector *vec, struct input *input)
                   struct append_queue *aq;
                   size_t buflen;
                   char *text = NULL;
-                  int result;
+                  size_t result;
 
                   result = ck_getdelim (&text, &buflen, buffer_delimiter,
                                         cur_cmd->x.inf->fp);

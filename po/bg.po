@@ -1,13 +1,14 @@
 # Bulgarian translation of sed.
-# Copyright (C) 2009, 2016, 2018 Free Software Foundation, Inc.
+# Copyright (C) 2009, 2016, 2018, 2020, 2022 Free Software Foundation, Inc.
 # This file is distributed under the same license as the sed package.
-# Alexander Shopov <ash@kambanaria.org>, 2016, 2018.
+# Alexander Shopov <ash@kambanaria.org>, 2016, 2018, 2020, 2022.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: sed 4.5.48\n"
+"Project-Id-Version: sed 4.8.44\n"
 "Report-Msgid-Bugs-To: bug-gnu-utils@gnu.org\n"
-"POT-Creation-Date: 2018-12-20 22:03-0800\n"
-"PO-Revision-Date: 2018-12-14 15:34+0100\n"
+"POT-Creation-Date: 2022-11-06 13:50-0800\n"
+"PO-Revision-Date: 2022-10-17 09:57+0200\n"
 "Last-Translator: Alexander Shopov <ash@kambanaria.org>\n"
 "Language-Team: Bulgarian <dict@ludost.net>\n"
 "Language: bg\n"
@@ -17,7 +18,7 @@ msgstr ""
 "X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/closeout.c:122
+#: lib/closeout.c:121
 msgid "write error"
 msgstr "грешка при запис"
 
@@ -26,39 +27,72 @@ msgstr "грешка при запис"
 msgid "preserving permissions for %s"
 msgstr "запазване на правата за „%s“"
 
-#: lib/dfa.c:970
+#: lib/dfa.c:894
 msgid "unbalanced ["
 msgstr "„[“ без еш"
 
-#: lib/dfa.c:1091
+#: lib/dfa.c:1015
 msgid "invalid character class"
 msgstr "неправилен клас знаци"
 
-#: lib/dfa.c:1217
+#: lib/dfa.c:1143
 msgid "character class syntax is [[:space:]], not [:space:]"
 msgstr "клас знаци се указва чрез „[[:ИМЕ:]]“, а не „[:ИМЕ:]“"
 
-#: lib/dfa.c:1284
+#: lib/dfa.c:1209
 msgid "unfinished \\ escape"
 msgstr "незавършена екранираща последователност чрез „\\“"
 
-#: lib/dfa.c:1445
+#: lib/dfa.c:1319
+msgid "? at start of expression"
+msgstr "„?“ в началото на израз"
+
+#: lib/dfa.c:1331
+msgid "* at start of expression"
+msgstr "„*“ в началото на израз"
+
+#: lib/dfa.c:1345
+msgid "+ at start of expression"
+msgstr "„+“ в началото на израз"
+
+#: lib/dfa.c:1400
+msgid "{...} at start of expression"
+msgstr "„{…}“ в началото на израз"
+
+#: lib/dfa.c:1403
 msgid "invalid content of \\{\\}"
 msgstr "неправилно съдържание в „\\{\\}“"
 
-#: lib/dfa.c:1448
+#: lib/dfa.c:1405
 msgid "regular expression too big"
 msgstr "прекалено голям регулярен израз"
 
-#: lib/dfa.c:1863
+#: lib/dfa.c:1555
+msgid "stray \\ before unprintable character"
+msgstr "излишен знак „\\“ пред знак, който не се печата"
+
+#: lib/dfa.c:1557
+msgid "stray \\ before white space"
+msgstr "излишен знак „\\“ пред празен знак"
+
+#: lib/dfa.c:1561
+#, c-format
+msgid "stray \\ before %lc"
+msgstr "излишен знак „\\“ пред „%lc“"
+
+#: lib/dfa.c:1562
+msgid "stray \\"
+msgstr "излишен знак „\\“"
+
+#: lib/dfa.c:1917
 msgid "unbalanced ("
 msgstr "„(“ без еш"
 
-#: lib/dfa.c:1981
+#: lib/dfa.c:2034
 msgid "no syntax specified"
 msgstr "не е зададен синтаксис"
 
-#: lib/dfa.c:1992
+#: lib/dfa.c:2045
 msgid "unbalanced )"
 msgstr "„)“ без еш"
 
@@ -66,42 +100,7 @@ msgstr "„)“ без еш"
 msgid "Unknown system error"
 msgstr "Неизвестна системна грешка"
 
-#: lib/getopt.c:278
-#, c-format
-msgid "%s: option '%s%s' is ambiguous\n"
-msgstr "%s: опцията „%s%s“ не е еднозначна\n"
-
-#: lib/getopt.c:284
-#, c-format
-msgid "%s: option '%s%s' is ambiguous; possibilities:"
-msgstr "%s: опцията „%s%s“ не е еднозначна. Възможности:"
-
-#: lib/getopt.c:319
-#, c-format
-msgid "%s: unrecognized option '%s%s'\n"
-msgstr "%s: непозната опция „%s%s“\n"
-
-#: lib/getopt.c:345
-#, c-format
-msgid "%s: option '%s%s' doesn't allow an argument\n"
-msgstr "%s: опцията „%s%s“ се използва без аргументи\n"
-
-#: lib/getopt.c:360
-#, c-format
-msgid "%s: option '%s%s' requires an argument\n"
-msgstr "%s: опцията „%s%s“ изисква аргумент\n"
-
-#: lib/getopt.c:621
-#, c-format
-msgid "%s: invalid option -- '%c'\n"
-msgstr "%s: неправилна опция — „%c“\n"
-
-#: lib/getopt.c:636 lib/getopt.c:682
-#, c-format
-msgid "%s: option requires an argument -- '%c'\n"
-msgstr "%s: опцията изисква аргумент — „%c“\n"
-
-#: lib/obstack.c:338 lib/obstack.c:340 lib/xalloc-die.c:34
+#: lib/obstack.c:337 lib/obstack.c:339 lib/xalloc-die.c:34
 msgid "memory exhausted"
 msgstr "паметта е изчерпана"
 
@@ -126,83 +125,83 @@ msgstr "паметта е изчерпана"
 #. If you don't know what to put here, please see
 #. <https://en.wikipedia.org/wiki/Quotation_marks_in_other_languages>
 #. and use glyphs suitable for your language.
-#: lib/quotearg.c:362
+#: lib/quotearg.c:354
 msgid "`"
 msgstr "„"
 
-#: lib/quotearg.c:363
+#: lib/quotearg.c:355
 msgid "'"
 msgstr "“"
 
-#: lib/regcomp.c:135
+#: lib/regcomp.c:122
 msgid "Success"
 msgstr "Успех"
 
-#: lib/regcomp.c:138
+#: lib/regcomp.c:125
 msgid "No match"
 msgstr "Няма съвпадения"
 
-#: lib/regcomp.c:141
+#: lib/regcomp.c:128
 msgid "Invalid regular expression"
 msgstr "Неправилен регулярен израз"
 
-#: lib/regcomp.c:144
+#: lib/regcomp.c:131
 msgid "Invalid collation character"
 msgstr "Неправилен знак за подредба"
 
-#: lib/regcomp.c:147
+#: lib/regcomp.c:134
 msgid "Invalid character class name"
 msgstr "Неправилно име на клас знаци"
 
-#: lib/regcomp.c:150
+#: lib/regcomp.c:137
 msgid "Trailing backslash"
 msgstr "Самотна „\\“ накрая"
 
-#: lib/regcomp.c:153
+#: lib/regcomp.c:140
 msgid "Invalid back reference"
 msgstr "Неправилна препратка към съвпадение"
 
-#: lib/regcomp.c:156
+#: lib/regcomp.c:143
 msgid "Unmatched [, [^, [:, [., or [="
 msgstr "„[“, „[^“, „[:“, „[.“ или „[=“ без еш"
 
-#: lib/regcomp.c:159
+#: lib/regcomp.c:146
 msgid "Unmatched ( or \\("
 msgstr "„(“ или „\\(“ без еш"
 
-#: lib/regcomp.c:162
+#: lib/regcomp.c:149
 msgid "Unmatched \\{"
 msgstr "„\\{“ без еш"
 
-#: lib/regcomp.c:165
+#: lib/regcomp.c:152
 msgid "Invalid content of \\{\\}"
 msgstr "Неправилно съдържание в „\\{\\}“"
 
-#: lib/regcomp.c:168
+#: lib/regcomp.c:155
 msgid "Invalid range end"
 msgstr "Неправилен край на диапазон"
 
-#: lib/regcomp.c:171
+#: lib/regcomp.c:158
 msgid "Memory exhausted"
 msgstr "Паметта свърши"
 
-#: lib/regcomp.c:174
+#: lib/regcomp.c:161
 msgid "Invalid preceding regular expression"
 msgstr "Предхождащият регулярен израз е неправилен"
 
-#: lib/regcomp.c:177
+#: lib/regcomp.c:164
 msgid "Premature end of regular expression"
 msgstr "Ранен край на регулярен израз"
 
-#: lib/regcomp.c:180
+#: lib/regcomp.c:167
 msgid "Regular expression too big"
 msgstr "Регулярният израз е прекалено голям"
 
-#: lib/regcomp.c:183
+#: lib/regcomp.c:170
 msgid "Unmatched ) or \\)"
 msgstr "„)“ или „\\)“ без еш"
 
-#: lib/regcomp.c:688
+#: lib/regcomp.c:650
 msgid "No previous regular expression"
 msgstr "Няма предхождащ регулярен израз"
 
@@ -228,39 +227,37 @@ msgstr "Пакетирано от %s\n"
 msgid "(C)"
 msgstr "©"
 
-#: lib/version-etc.c:85
+#. TRANSLATORS: The %s placeholder is the web address of the GPL license.
+#: lib/version-etc.c:88
+#, c-format
 msgid ""
-"\n"
-"License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl."
-"html>.\n"
+"License GPLv3+: GNU GPL version 3 or later <%s>.\n"
 "This is free software: you are free to change and redistribute it.\n"
 "There is NO WARRANTY, to the extent permitted by law.\n"
-"\n"
 msgstr ""
-"\n"
 "Лиценз — Общ публичен лиценз на GNU (GNU GPL), както е публикуван от "
 "Фондацията\n"
 "за свободен софтуер — версия 3 на лиценза или (по ваше решение) по-късна "
 "версия.\n"
-"<https://gnu.org/licenses/gpl.html>\n"
+"<%s>\n"
 "Тази програма е свободен софтуер. Можете да я разпространявате и/или "
 "променяте.\n"
 "Тя се разпространява БЕЗ НИКАКВИ ГАРАНЦИИ доколкото е позволено от закона.\n"
 
 #. TRANSLATORS: %s denotes an author name.
-#: lib/version-etc.c:102
+#: lib/version-etc.c:105
 #, c-format
 msgid "Written by %s.\n"
 msgstr "Създадено от %s.\n"
 
 #. TRANSLATORS: Each %s denotes an author name.
-#: lib/version-etc.c:106
+#: lib/version-etc.c:109
 #, c-format
 msgid "Written by %s and %s.\n"
 msgstr "Създадено от %s и %s.\n"
 
 #. TRANSLATORS: Each %s denotes an author name.
-#: lib/version-etc.c:110
+#: lib/version-etc.c:113
 #, c-format
 msgid "Written by %s, %s, and %s.\n"
 msgstr "Създадено от %s, %s и %s.\n"
@@ -268,7 +265,7 @@ msgstr "Създадено от %s, %s и %s.\n"
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:117
+#: lib/version-etc.c:120
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -280,7 +277,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:124
+#: lib/version-etc.c:127
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -292,7 +289,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:131
+#: lib/version-etc.c:134
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -304,7 +301,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:139
+#: lib/version-etc.c:142
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -316,7 +313,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:147
+#: lib/version-etc.c:150
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -330,7 +327,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:156
+#: lib/version-etc.c:159
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -344,7 +341,7 @@ msgstr ""
 #. TRANSLATORS: Each %s denotes an author name.
 #. You can use line breaks, estimating that each author name occupies
 #. ca. 16 screen columns and that a screen line has ca. 80 columns.
-#: lib/version-etc.c:167
+#: lib/version-etc.c:170
 #, c-format
 msgid ""
 "Written by %s, %s, %s,\n"
@@ -359,34 +356,27 @@ msgstr ""
 #. for this package.  Please add _another line_ saying
 #. "Report translation bugs to <...>\n" with the address for translation
 #. bugs (typically your translation team's web or email address).
-#: lib/version-etc.c:245
+#: lib/version-etc.c:249
 #, c-format
-msgid ""
-"\n"
-"Report bugs to: %s\n"
+msgid "Report bugs to: %s\n"
 msgstr ""
-"\n"
 "Докладвайте грешки в програмата на адрес: %s\n"
 "Докладвайте грешки в превода на адрес: <dict@ludost.net>\n"
 
-#: lib/version-etc.c:247
+#: lib/version-etc.c:251
 #, c-format
 msgid "Report %s bugs to: %s\n"
 msgstr "Докладвайте грешки в „%s“ на адрес: %s\n"
 
-#: lib/version-etc.c:251
+#: lib/version-etc.c:255 lib/version-etc.c:257
 #, c-format
 msgid "%s home page: <%s>\n"
 msgstr "Уеб страница на „%s“: <%s>\n"
 
-#: lib/version-etc.c:253
+#: lib/version-etc.c:260
 #, c-format
-msgid "%s home page: <https://www.gnu.org/software/%s/>\n"
-msgstr "Уеб страница на „%s“: <https://www.gnu.org/software/%s/>\n"
-
-#: lib/version-etc.c:256
-msgid "General help using GNU software: <https://www.gnu.org/gethelp/>\n"
-msgstr "Обща помощ за програмите на GNU: <https://www.gnu.org/gethelp/>\n"
+msgid "General help using GNU software: <%s>\n"
+msgstr "Обща помощ за програмите на GNU: <%s>\n"
 
 #: sed/compile.c:146
 msgid "multiple `!'s"
@@ -505,17 +495,17 @@ msgstr "рекурсивното екраниране след „\\c“ е за
 msgid "e/r/w commands disabled in sandbox mode"
 msgstr "в безопасен режим командите „e“/„r“/„w“ са изключени"
 
-#: sed/compile.c:215
+#: sed/compile.c:218
 #, c-format
 msgid "%s: file %s line %lu: %s\n"
 msgstr "%s: файл „%s“, ред %lu: %s\n"
 
-#: sed/compile.c:218
+#: sed/compile.c:221
 #, c-format
 msgid "%s: -e expression #%lu, char %lu: %s\n"
 msgstr "%s: -e израз №%lu, знак %lu: %s\n"
 
-#: sed/compile.c:1607
+#: sed/compile.c:1623
 #, c-format
 msgid "can't find label for jump to `%s'"
 msgstr "етикетът „%s“, към който трябва да се премине, липсва"
@@ -525,52 +515,52 @@ msgstr "етикетът „%s“, към който трябва да се пр
 msgid "case conversion produced an invalid character"
 msgstr "смяната на регистъра доведе до неправилен знак"
 
-#: sed/execute.c:561
+#: sed/execute.c:565
 #, c-format
 msgid "%s: can't read %s: %s\n"
 msgstr "%s: не може да се чете от „%s“: %s\n"
 
-#: sed/execute.c:587
+#: sed/execute.c:591
 #, c-format
 msgid "couldn't edit %s: is a terminal"
 msgstr "„%s“ не може да се редактира, защото е терминал"
 
-#: sed/execute.c:592
+#: sed/execute.c:596
 #, c-format
 msgid "couldn't edit %s: not a regular file"
 msgstr "„%s“ не може да се редактира, защото не е нормален файл"
 
-#: sed/execute.c:603
+#: sed/execute.c:607
 #, c-format
 msgid "%s: warning: failed to set default file creation context to %s: %s"
 msgstr ""
 "%s: ПРЕДУПРЕЖДЕНИЕ: на „%s“ не може да се зададе стандартният контекст при "
 "създаване на файлове: %s"
 
-#: sed/execute.c:611
+#: sed/execute.c:615
 #, c-format
 msgid "%s: warning: failed to get security context of %s: %s"
 msgstr ""
 "%s: ПРЕДУПРЕЖДЕНИЕ: контекстът за сигурност на „%s“ не може да се получи: %s"
 
-#: sed/execute.c:630 sed/utils.c:188
+#: sed/execute.c:633 sed/utils.c:215
 #, c-format
 msgid "couldn't open temporary file %s: %s"
 msgstr "временният файл „%s“ не може да се отвори: %s"
 
-#: sed/execute.c:1167 sed/execute.c:1366
+#: sed/execute.c:1170 sed/execute.c:1369
 msgid "error in subprocess"
 msgstr "грешка в подпроцеса"
 
-#: sed/execute.c:1169
+#: sed/execute.c:1172
 msgid "option `e' not supported"
 msgstr "опцията „e“ не се поддържа"
 
-#: sed/execute.c:1347
+#: sed/execute.c:1350
 msgid "`e' command not supported"
 msgstr "командата „e“ не се поддържа"
 
-#: sed/execute.c:1662
+#: sed/execute.c:1672
 msgid "no input files"
 msgstr "не са зададени входни файлове"
 
@@ -587,31 +577,31 @@ msgstr "неправилен указател „\\%d“ в дясната ст�
 msgid "regex input buffer length larger than INT_MAX"
 msgstr "дължината на входния буфер за регулярния израз е повече от INT_MAX"
 
-#: sed/sed.c:36
+#: sed/sed.c:37
 msgid "Jay Fenlason"
 msgstr "Jay Fenlason"
 
-#: sed/sed.c:37
+#: sed/sed.c:38
 msgid "Tom Lord"
 msgstr "Tom Lord"
 
-#: sed/sed.c:38
+#: sed/sed.c:39
 msgid "Ken Pizzini"
 msgstr "Ken Pizzini"
 
-#: sed/sed.c:39
+#: sed/sed.c:40
 msgid "Paolo Bonzini"
 msgstr "Paolo Bonzini"
 
-#: sed/sed.c:40
+#: sed/sed.c:41
 msgid "Jim Meyering"
 msgstr "Jim Meyering"
 
-#: sed/sed.c:41
+#: sed/sed.c:42
 msgid "Assaf Gordon"
 msgstr "Assaf Gordon"
 
-#: sed/sed.c:124
+#: sed/sed.c:103
 #, c-format
 msgid ""
 "GNU sed home page: <https://www.gnu.org/software/sed/>.\n"
@@ -621,12 +611,29 @@ msgstr ""
 "Обща помощ за използването на софтуера от GNU: <http://www.gnu.org/gethelp/"
 ">.\n"
 
-#: sed/sed.c:130
+#: sed/sed.c:109
 #, c-format
 msgid "E-mail bug reports to: <%s>.\n"
 msgstr "Докладвайте грешки в програмата на адрес: %s\n"
 
-#: sed/sed.c:138
+#: sed/sed.c:117
+msgid "This sed program was built with SELinux support."
+msgstr "Този вариант на програмата „sed“ е компилиран с поддръжка на SELinux."
+
+#: sed/sed.c:119
+msgid "SELinux is enabled on this system."
+msgstr "SELinux е включен на тази система."
+
+#: sed/sed.c:121
+msgid "SELinux is disabled on this system."
+msgstr "SELinux е изключен на тази система."
+
+#: sed/sed.c:123
+msgid "This sed program was built without SELinux support."
+msgstr ""
+"Този вариант на програмата „sed“ е компилиран без поддръжка на SELinux."
+
+#: sed/sed.c:133
 #, c-format
 msgid ""
 "Usage: %s [OPTION]... {script-only-if-no-other-script} [input-file]...\n"
@@ -635,7 +642,7 @@ msgstr ""
 "Употреба: %s [ОПЦИЯ]… {СКРИПТ_АКО_НЕ_E_ЗАДАДЕН_ИНАЧЕ} [ВХОДЕН_ФАЙЛ]…\n"
 "\n"
 
-#: sed/sed.c:142
+#: sed/sed.c:137
 #, c-format
 msgid ""
 "  -n, --quiet, --silent\n"
@@ -645,7 +652,7 @@ msgstr ""
 "                 без автоматичното отпечатване на буфера за напасване на "
 "шаблони\n"
 
-#: sed/sed.c:144
+#: sed/sed.c:139
 #, c-format
 msgid ""
 "      --debug\n"
@@ -654,7 +661,7 @@ msgstr ""
 "      --debug\n"
 "                 подробна информация за изпълнението\n"
 
-#: sed/sed.c:146
+#: sed/sed.c:141
 #, c-format
 msgid ""
 "  -e script, --expression=script\n"
@@ -663,7 +670,7 @@ msgstr ""
 "  -e СКРИПТ, --expression=СКРИПТ\n"
 "                 добавяне на СКРИПТа към командите за изпълнение\n"
 
-#: sed/sed.c:148
+#: sed/sed.c:143
 #, c-format
 msgid ""
 "  -f script-file, --file=script-file\n"
@@ -675,7 +682,7 @@ msgstr ""
 "командите\n"
 "                 за изпълнение\n"
 
-#: sed/sed.c:152
+#: sed/sed.c:147
 #, c-format
 msgid ""
 "  --follow-symlinks\n"
@@ -684,7 +691,7 @@ msgstr ""
 "  --follow-symlinks\n"
 "                 следване на символните връзки при обработката на място\n"
 
-#: sed/sed.c:155
+#: sed/sed.c:150
 #, c-format
 msgid ""
 "  -i[SUFFIX], --in-place[=SUFFIX]\n"
@@ -695,7 +702,7 @@ msgstr ""
 "копие\n"
 "                 с това РАЗШИРЕНИЕ, ако е зададено)\n"
 
-#: sed/sed.c:158
+#: sed/sed.c:153
 #, c-format
 msgid ""
 "  -b, --binary\n"
@@ -707,7 +714,7 @@ msgstr ""
 "специално\n"
 "                 значение)\n"
 
-#: sed/sed.c:162
+#: sed/sed.c:157
 #, c-format
 msgid ""
 "  -l N, --line-length=N\n"
@@ -717,7 +724,7 @@ msgstr ""
 "                 желана дължина на реда, след която командата „l“ го "
 "пренася\n"
 
-#: sed/sed.c:164
+#: sed/sed.c:159
 #, c-format
 msgid ""
 "  --posix\n"
@@ -726,7 +733,7 @@ msgstr ""
 "  --posix\n"
 "                 изключване на всички разширения на GNU\n"
 
-#: sed/sed.c:166
+#: sed/sed.c:161
 #, c-format
 msgid ""
 "  -E, -r, --regexp-extended\n"
@@ -737,7 +744,7 @@ msgstr ""
 "                 използване на разширени регулярни изрази в скриптовете\n"
 "                 (за съвместимост с POSIX ползвайте „-E“)\n"
 
-#: sed/sed.c:169
+#: sed/sed.c:164
 #, c-format
 msgid ""
 "  -s, --separate\n"
@@ -748,7 +755,7 @@ msgstr ""
 "                 обработка на файловете поотделно, а не като един обединен "
 "поток\n"
 
-#: sed/sed.c:172
+#: sed/sed.c:167
 #, c-format
 msgid ""
 "      --sandbox\n"
@@ -757,7 +764,7 @@ msgstr ""
 "  --sandbox\n"
 "                 безопасен режим (без командите „e“/„r“/„w“).\n"
 
-#: sed/sed.c:174
+#: sed/sed.c:169
 #, c-format
 msgid ""
 "  -u, --unbuffered\n"
@@ -769,7 +776,7 @@ msgstr ""
 "                 зареждане на минимално количество входни данни и често\n"
 "                 изчистване на буферите\n"
 
-#: sed/sed.c:177
+#: sed/sed.c:172
 #, c-format
 msgid ""
 "  -z, --null-data\n"
@@ -778,17 +785,17 @@ msgstr ""
 "  -z, --null-data\n"
 "                 отделяне на редовете със знака NUL\n"
 
-#: sed/sed.c:179
+#: sed/sed.c:174
 #, c-format
 msgid "      --help     display this help and exit\n"
 msgstr "      --help     извеждане на тази помощ и изход\n"
 
-#: sed/sed.c:180
+#: sed/sed.c:175
 #, c-format
 msgid "      --version  output version information and exit\n"
-msgstr "      --version  извеждане на версията на GNU sed и изход\n"
+msgstr "      --version  извеждане на версията и изход\n"
 
-#: sed/sed.c:181
+#: sed/sed.c:176
 #, c-format
 msgid ""
 "\n"
@@ -804,57 +811,52 @@ msgstr ""
 "останали аргументи се третират като имена на входни файлове.  Ако не са\n"
 "зададени такива, се чете от стандартния вход.\n"
 
-#: sed/sed.c:373
+#: sed/sed.c:369
 msgid "failed to set binary mode on STDIN"
 msgstr "неуспешно задаване на двоичен режим за стандартния вход (STDIN)"
 
-#: sed/sed.c:375
+#: sed/sed.c:371
 msgid "failed to set binary mode on STDOUT"
 msgstr "неуспешно задаване на двоичен режим за стандартния изход (STDOUT)"
 
-#: sed/utils.c:77 sed/utils.c:395
-#, c-format
-msgid "cannot remove %s: %s"
-msgstr "„%s“ не може да се изтрие: %s"
-
-#: sed/utils.c:146
+#: sed/utils.c:129
 #, c-format
 msgid "couldn't open file %s: %s"
 msgstr "файлът „%s“ не може да се отвори: %s"
 
-#: sed/utils.c:165
+#: sed/utils.c:148
 #, c-format
 msgid "couldn't attach to %s: %s"
 msgstr "неуспешно свързване към „%s“: %s"
 
-#: sed/utils.c:192
+#: sed/utils.c:207
 #, c-format
 msgid "failed to set binary mode on '%s'"
 msgstr "неуспешно задаване на двоичен режим за „%s“"
 
-#: sed/utils.c:207
+#: sed/utils.c:228
 #, c-format
 msgid "couldn't write %llu item to %s: %s"
 msgid_plural "couldn't write %llu items to %s: %s"
 msgstr[0] "%llu елемент не може да се запише в „%s“: %s"
 msgstr[1] "%llu елемента не може да се запишат в „%s“: %s"
 
-#: sed/utils.c:219 sed/utils.c:238
+#: sed/utils.c:240 sed/utils.c:259
 #, c-format
 msgid "read error on %s: %s"
 msgstr "грешка при четене на „%s“: %s"
 
-#: sed/utils.c:336
+#: sed/utils.c:358
+#, c-format
+msgid "couldn't readlink %s: %s"
+msgstr "символната връзка „%s“ не може да се прочете с „readlink“: %s"
+
+#: sed/utils.c:361
 #, c-format
 msgid "couldn't follow symlink %s: %s"
 msgstr "символната връзка „%s“ не може да се проследи: %s"
 
-#: sed/utils.c:370
-#, c-format
-msgid "cannot stat %s: %s"
-msgstr "не може да се получи информация за „%s“ чрез „stat“: %s"
-
-#: sed/utils.c:400
+#: sed/utils.c:408
 #, c-format
 msgid "cannot rename %s: %s"
 msgstr "„%s“ не може да се преименува: %s"

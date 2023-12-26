@@ -1,4 +1,4 @@
-# Copyright (C) 1990-2018 Free Software Foundation, Inc.
+# Copyright (C) 1990-2022 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -90,7 +90,7 @@ THANKS: THANKS.in Makefile.am .mailmap thanks-gen .version
 	} > $@-t && chmod a-w $@-t && mv $@-t $@
 
 
-DISTCHECK_CONFIGURE_FLAGS = XGETTEXT='$(SHELL) -c : dummy' $(EXTRA_DC_FLAGS)
+AM_DISTCHECK_CONFIGURE_FLAGS = XGETTEXT='$(SHELL) -c : dummy' $(EXTRA_DC_FLAGS)
 EXTRA_DC_FLAGS =
 
 full-distcheck:
@@ -109,21 +109,6 @@ full-distcheck:
 	    echo Skipping check --without-included-regex \
 	    ;; \
 	esac
-
-## update-regex:
-##	HOST=sources.redhat.com && \
-##	BASEURL="http://$$HOST/cgi-bin/cvsweb.cgi/~checkout~/libc/posix" && \
-##	QUERY='cvsroot=glibc&content-type=text/plain' && \
-##	wget -O lib/regcomp.c "$$BASEURL/regcomp.c?$$QUERY" && \
-##	wget -O lib/regexec.c "$$BASEURL/regexec.c?$$QUERY" && \
-##	wget -O lib/regex.c "$$BASEURL/regex.c?$$QUERY" && \
-##	wget -O lib/regex_.h "$$BASEURL/regex.h?$$QUERY" && \
-##	wget -O lib/regex_internal.c "$$BASEURL/regex_internal.c?$$QUERY" && \
-##	wget -O lib/regex_internal.h "$$BASEURL/regex_internal.h?$$QUERY" && \
-##	wget -O testsuite/BOOST.tests "$$BASEURL/BOOST.tests?$$QUERY" && \
-##	wget -O testsuite/PCRE.tests "$$BASEURL/PCRE.tests?$$QUERY" && \
-##	wget -O testsuite/SPENCER.tests "$$BASEURL/rxspencer/tests?$$QUERY"
-
 
 include $(top_srcdir)/lib/local.mk
 include $(top_srcdir)/sed/local.mk

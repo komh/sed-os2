@@ -1,5 +1,61 @@
 GNU sed NEWS                                    -*- outline -*-
 
+* Noteworthy changes in release 4.9 (2022-11-06) [stable]
+
+** Bug fixes
+
+  'sed --follow-symlinks -i' no longer loops forever when its operand
+  is a symbolic link cycle.
+  [bug introduced in sed 4.2]
+
+  a program with an execution line longer than 2GB can no longer trigger
+  an out-of-bounds memory write.
+
+  using the R command to read an input line of length longer than 2GB
+  can no longer trigger an out-of-bounds memory read.
+
+  In locales using UTF-8 encoding, the regular expression '.' no
+  longer sometimes fails to match Unicode characters U+D400 through
+  U+D7FF (some Hangul Syllables, and Hangul Jamo Extended-B) and
+  Unicode characters U+108000 through U+10FFFF (half of Supplemental
+  Private Use Area plane B).
+  [bug introduced in sed 4.8]
+
+  I/O errors involving temp files no longer confuse sed into using a
+  FILE * pointer after fclosing it, which has undefined behavior in C.
+
+** New Features
+
+  The 'r' command now accepts address 0, allowing inserting a file before
+  the first line.
+
+** Changes in behavior
+
+   Sed now prints the less-surprising variant in a corner case of
+   POSIX-unspecified behavior.  Before, this would print "n".
+   Now, it prints "X":
+
+    printf n | sed 'sn\nnXn'; echo
+
+
+* Noteworthy changes in release 4.8 (2020-01-14) [stable]
+
+** Bug fixes
+
+  "sed -i" now creates temporary files with correct umask (limited to u=rwx).
+  Previously sed would incorrectly set umask on temporary files, resulting
+  in problems under certain fuse-like file systems.
+  [bug introduced in sed 4.2.1]
+
+** Release
+
+  distribute gzip-compressed tarballs once again
+
+** Improvements
+
+  a year's worth of gnulib development, including improved DFA performance
+
+
 * Noteworthy changes in release 4.7 (2018-12-20) [stable]
 
 ** Bug fixes

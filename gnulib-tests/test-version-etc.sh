@@ -1,11 +1,11 @@
 #! /bin/sh
 # Test suite for version-etc.
-# Copyright (C) 2009-2018 Free Software Foundation, Inc.
+# Copyright (C) 2009-2022 Free Software Foundation, Inc.
 # This file is part of the GNUlib Library.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
+# the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -33,7 +33,7 @@ There is NO WARRANTY, to the extent permitted by law.
 Written by Sergey Poznyakoff and Eric Blake.
 EOT
 
-test-version-etc${EXEEXT} --version |
+${CHECKER} test-version-etc${EXEEXT} --version |
  sed '1s/test-version-etc (.*) .*/test-version-etc (PROJECT) VERSION/
       /^Packaged by/d
       2,3 s/Copyright (C) [0-9]\{4,4\}/COPYRIGHT/' |

@@ -1,5 +1,5 @@
 /*  GNU SED, a batch stream editor.
-    Copyright (C) 1989-2018 Free Software Foundation, Inc.
+    Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -203,7 +203,10 @@ bad_command (char ch)
 {
   const char *msg = _(UNKNOWN_CMD);
   char *unknown_cmd = xmalloc (strlen (msg));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
   sprintf (unknown_cmd, msg, ch);
+#pragma GCC diagnostic pop
   bad_prog (unknown_cmd);
 }
 
@@ -554,8 +557,6 @@ match_slash (int slash, int regex)
               ch = inchar ();
               if (ch == EOF)
                 break;
-              else if (ch == 'n' && regex)
-                ch = '\n';
               else if (ch != '\n' && (ch != slash || (!regex && ch == '&')))
                 add1_buffer (b, '\\');
             }
@@ -1018,7 +1019,8 @@ compile_program (struct vector *vector)
 
           if ((cur_cmd->a1->addr_type == ADDR_IS_NUM
                && cur_cmd->a1->addr_number == 0)
-              && ((!cur_cmd->a2 || cur_cmd->a2->addr_type != ADDR_IS_REGEX)
+              && ((!cur_cmd->a2 && ch != 'r')
+                  || (cur_cmd->a2 && cur_cmd->a2->addr_type != ADDR_IS_REGEX)
                   || posixicity == POSIXLY_BASIC))
             bad_prog (_(INVALID_LINE_0));
         }
@@ -1193,7 +1195,21 @@ compile_program (struct vector *vector)
           b = read_filename ();
           if (strlen (get_buffer (b)) == 0)
             bad_prog (_(MISSING_FILENAME));
-          cur_cmd->x.fname = xstrdup (get_buffer (b));
+          cur_cmd->x.readcmd.fname = xstrdup (get_buffer (b));
+
+          /* Adjust '0rFILE' command to '1rFILE' in prepend mode */
+          if (cur_cmd->a1
+              && cur_cmd->a1->addr_type == ADDR_IS_NUM
+              && cur_cmd->a1->addr_number == 0
+              && !cur_cmd->a2)
+            {
+              cur_cmd->a1->addr_number = 1;
+              cur_cmd->x.readcmd.append = false;
+            }
+          else
+            {
+              cur_cmd->x.readcmd.append = true;
+            }
           free_buffer (b);
           break;
 

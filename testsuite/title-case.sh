@@ -1,7 +1,7 @@
 #!/bin/sh
 # Test case insensitive matching for titlecase and similarly odd chars.
 
-# Copyright (C) 2016-2018 Free Software Foundation, Inc.
+# Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,8 +26,8 @@ c='\363' # sigma
 
 printf "$a\\n$b\\n$c\\n" >in || framework_failure_
 for chr in "$a" "$b" "$c"; do
-   printf '/\(\)\\1'"$chr"/Ip >prog || fail=1
-   LC_ALL=el_GR.iso88597 sed -n -f prog in >out || fail=1
+   printf '/()\\1'"$chr"/Ip >prog || fail=1
+   LC_ALL=el_GR.iso88597 sed -r -n -f prog in >out || fail=1
    compare_ in out || fail=1
 done
 

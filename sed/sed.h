@@ -1,5 +1,5 @@
 /*  GNU SED, a batch stream editor.
-    Copyright (C) 1989-2018 Free Software Foundation, Inc.
+    Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,6 +55,11 @@ struct regex {
   bool begline;
   bool endline;
   char re[1];
+};
+
+struct readcmd {
+  char *fname;
+  bool append; /* true: append (default); false: prepend (gnu extension) */
 };
 
 enum replacement_types {
@@ -158,7 +163,7 @@ struct sed_cmd {
     countT jump_index;
 
     /* This is used for the r command. */
-    char *fname;
+    struct readcmd readcmd;
 
     /* This is used for the hairy s command. */
     struct subst *cmd_subst;
@@ -274,8 +279,6 @@ extern bool debug;
 
 extern int is_mb_char (int ch, mbstate_t *ps);
 extern void initialize_mbcs (void);
-extern void register_cleanup_file (char const *file);
-extern void cancel_cleanup (void);
 
 /* Use this to suppress gcc's '...may be used before initialized' warnings. */
 #ifdef lint

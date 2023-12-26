@@ -1,5 +1,5 @@
 /*  Functions from hack's utils library.
-    Copyright (C) 1989-2018 Free Software Foundation, Inc.
+    Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,11 +27,20 @@
 #include <limits.h>
 
 #include "binary-io.h"
+#include "eloop-threshold.h"
+#include "idx.h"
+#include "minmax.h"
 #include "unlocked-io.h"
 #include "utils.h"
 #include "progname.h"
 #include "fwriting.h"
 #include "xalloc.h"
+
+#ifdef SSIZE_MAX
+# define SSIZE_IDX_MAX MIN (SSIZE_MAX, IDX_MAX)
+#else
+# define SSIZE_IDX_MAX IDX_MAX
+#endif
 
 #if O_BINARY
 extern bool binary_mode;
@@ -46,11 +55,10 @@ struct open_file
     FILE *fp;
     char *name;
     struct open_file *link;
-    unsigned temp : 1;
   };
 
 static struct open_file *open_files = NULL;
-static void do_ck_fclose (FILE *fp);
+static void do_ck_fclose (FILE *, char const *);
 
 /* Print an error message and exit */
 
@@ -65,28 +73,15 @@ panic (const char *str, ...)
   va_end (ap);
   putc ('\n', stderr);
 
-  /* Unlink the temporary files.  */
+#ifdef lint
   while (open_files)
     {
-      if (open_files->temp)
-        {
-          fclose (open_files->fp);
-          errno = 0;
-          unlink (open_files->name);
-          if (errno != 0)
-            fprintf (stderr, _("cannot remove %s: %s"), open_files->name,
-                     strerror (errno));
-        }
-
-#ifdef lint
       struct open_file *next = open_files->link;
       free (open_files->name);
       free (open_files);
       open_files = next;
-#else
-      open_files = open_files->link;
-#endif
     }
+#endif
 
   exit (EXIT_PANIC);
 }
@@ -114,23 +109,11 @@ static void
 register_open_file (FILE *fp, const char *name)
 {
   struct open_file *p;
-  for (p=open_files; p; p=p->link)
-    {
-      if (fp == p->fp)
-        {
-          free (p->name);
-          break;
-        }
-    }
-  if (!p)
-    {
-      p = XCALLOC (1, struct open_file);
-      p->link = open_files;
-      open_files = p;
-    }
+  p = xmalloc (sizeof *p);
+  p->link = open_files;
+  open_files = p;
   p->name = xstrdup (name);
   p->fp = fp;
-  p->temp = false;
 }
 
 /* Panic on failing fopen */
@@ -171,6 +154,33 @@ ck_fdopen ( int fd, const char *name, const char *mode, int fail)
   return fp;
 }
 
+/* When we've created a temporary for an in-place update,
+   we may have to exit before the rename.  This is the name
+   of the temporary that we'll have to unlink via an atexit-
+   registered cleanup function.  */
+static char const *G_file_to_unlink;
+
+void
+remove_cleanup_file (void)
+{
+  if (G_file_to_unlink)
+    unlink (G_file_to_unlink);
+}
+
+/* Note that FILE must be removed upon exit.  */
+static void
+register_cleanup_file (char const *file)
+{
+  G_file_to_unlink = file;
+}
+
+/* Clear the global file-to-unlink global.  */
+void
+cancel_cleanup (void)
+{
+  G_file_to_unlink = NULL;
+}
+
 FILE *
 ck_mkstemp (char **p_filename, const char *tmpdir,
             const char *base, const char *mode)
@@ -181,19 +191,30 @@ ck_mkstemp (char **p_filename, const char *tmpdir,
    /* The ownership might change, so omit some permissions at first
       so unauthorized users cannot nip in before the file is ready.
       mkstemp forces O_BINARY on cygwin, so use mkostemp instead.  */
-  mode_t save_umask = umask (0700);
+  mode_t save_umask = umask (0077);
   int fd = mkostemp (template, 0);
+  int err = errno;
   umask (save_umask);
-  if (fd == -1)
-    panic (_("couldn't open temporary file %s: %s"), template,
-           strerror (errno));
+  FILE *fp = NULL;
+
+  if (0 <= fd)
+    {
+      *p_filename = template;
+      register_cleanup_file (template);
+
 #if O_BINARY
-  if (binary_mode && (set_binary_mode ( fd, O_BINARY) == -1))
-      panic (_("failed to set binary mode on '%s'"), template);
+      if (binary_mode && set_binary_mode (fd, O_BINARY) == -1)
+        panic (_("failed to set binary mode on '%s'"), template);
 #endif
 
-  *p_filename = template;
-  FILE *fp = fdopen (fd, mode);
+      fp = fdopen (fd, mode);
+      err = errno;
+    }
+
+  if (!fp)
+    panic (_("couldn't open temporary file %s: %s"), template,
+           strerror (err));
+
   register_open_file (fp, template);
   return fp;
 }
@@ -222,7 +243,7 @@ ck_fread (void *ptr, size_t size, size_t nmemb, FILE *stream)
 }
 
 size_t
-ck_getdelim (char **text, size_t *buflen, char buffer_delimiter, FILE *stream)
+ck_getdelim (char **text, size_t *buflen, char delim, FILE *stream)
 {
   ssize_t result;
   bool error;
@@ -230,7 +251,7 @@ ck_getdelim (char **text, size_t *buflen, char buffer_delimiter, FILE *stream)
   error = ferror (stream);
   if (!error)
     {
-      result = getdelim (text, buflen, buffer_delimiter, stream);
+      result = getdelim (text, buflen, delim, stream);
       error = ferror (stream);
     }
 
@@ -256,146 +277,133 @@ ck_fflush (FILE *stream)
 void
 ck_fclose (FILE *stream)
 {
-  struct open_file r;
-  struct open_file *prev;
+  struct open_file **prev = &open_files;
   struct open_file *cur;
 
   /* a NULL stream means to close all files */
-  r.link = open_files;
-  prev = &r;
-  while ( (cur = prev->link) )
+  while ((cur = *prev))
     {
       if (!stream || stream == cur->fp)
         {
-          do_ck_fclose (cur->fp);
-          prev->link = cur->link;
+          FILE *fp = cur->fp;
+          *prev = cur->link;
+          do_ck_fclose (fp, cur->name);
           free (cur->name);
           free (cur);
         }
       else
-        prev = cur;
+        prev = &cur->link;
     }
-
-  open_files = r.link;
 
   /* Also care about stdout, because if it is redirected the
      last output operations might fail and it is important
      to signal this as an error (perhaps to make). */
   if (!stream)
-    do_ck_fclose (stdout);
+    do_ck_fclose (stdout, "stdout");
 }
 
 /* Close a single file. */
-void
-do_ck_fclose (FILE *fp)
+static void
+do_ck_fclose (FILE *fp, char const *name)
 {
   ck_fflush (fp);
   clearerr (fp);
 
   if (fclose (fp) == EOF)
-    panic ("couldn't close %s: %s", utils_fp_name (fp), strerror (errno));
+    panic ("couldn't close %s: %s", name, strerror (errno));
 }
 
-/* Follow symlink and panic if something fails.  Return the ultimate
-   symlink target, stored in a temporary buffer that the caller should
-   not free.  */
+/* Follow symlink FNAME and return the ultimate target, stored in a
+   temporary buffer that the caller should not free.  Return FNAME if
+   it is not a symlink.  Panic if a symlink loop is found.  */
 const char *
 follow_symlink (const char *fname)
 {
-#ifdef ENABLE_FOLLOW_SYMLINKS
-  static char *buf1, *buf2;
-  static int buf_size;
+  /* The file name, as adjusted so far by replacing symlinks with
+     their contents.  Only the last file name component is replaced,
+     as we need not do all the work of realpath.  */
 
-  struct stat statbuf;
-  const char *buf = fname, *c;
-  int rc;
+  /* FIXME: We should get a file descriptor on the parent directory,
+     to avoid resolving that directory name more than once (which can
+     lead to races).  Perhaps someday the Gnulib 'supersede' module
+     can get a function openat_supersede that will do this for us.  */
+  char const *fn = fname;
 
-  if (buf_size == 0)
+#ifdef HAVE_READLINK
+  static char *buf;
+  static idx_t buf_size;
+
+  idx_t buf_used = 0;
+
+  for (idx_t num_links = 0; ; num_links++)
     {
-      buf1 = xzalloc (PATH_MAX + 1);
-      buf2 = xzalloc (PATH_MAX + 1);
-      buf_size = PATH_MAX + 1;
-    }
+      ssize_t linklen;
+      idx_t newlen;
+      char const *c;
 
-  while ((rc = lstat (buf, &statbuf)) == 0
-         && (statbuf.st_mode & S_IFLNK) == S_IFLNK)
-    {
-      if (buf == buf2)
+      /* Put symlink contents into BUF + BUF_USED.  */
+      while ((linklen = (buf_used < buf_size
+                         ? readlink (fn, buf + buf_used, buf_size - buf_used)
+                         : 0))
+             == buf_size)
         {
-          strcpy (buf1, buf2);
-          buf = buf1;
+          buf = xpalloc (buf, &buf_size, 1, SSIZE_IDX_MAX, 1);
+          if (num_links)
+            fn = buf;
         }
-
-      while ((rc = readlink (buf, buf2, buf_size)) == buf_size)
+      if (linklen < 0)
         {
-          buf_size *= 2;
-          buf1 = xrealloc (buf1, buf_size);
-          buf2 = xrealloc (buf2, buf_size);
+          if (errno == EINVAL)
+            break;
+          panic (_("couldn't readlink %s: %s"), fn, strerror (errno));
         }
-      if (rc < 0)
-        panic (_("couldn't follow symlink %s: %s"), buf, strerror (errno));
-      else
-        buf2 [rc] = '\0';
+      if (__eloop_threshold () <= num_links)
+        panic (_("couldn't follow symlink %s: %s"), fname, strerror (ELOOP));
 
-      if (buf2[0] != '/' && (c = strrchr (buf, '/')) != NULL)
+      if ((linklen == 0 || buf[buf_used] != '/') && (c = strrchr (fn, '/')))
         {
-          /* Need to handle relative paths with care.  Reallocate buf1 and
-             buf2 to be big enough.  */
-          int len = c - buf + 1;
-          if (len + rc + 1 > buf_size)
+          /* A relative symlink not from the working directory.
+             Make sure BUF is big enough.  */
+          idx_t dirlen = c - fn + 1;
+          newlen = dirlen + linklen;
+          if (buf_size <= newlen)
             {
-              buf_size = len + rc + 1;
-              buf1 = xrealloc (buf1, buf_size);
-              buf2 = xrealloc (buf2, buf_size);
+              buf = xpalloc (buf, &buf_size, newlen + 1 - buf_size,
+                             SSIZE_IDX_MAX, 1);
+              if (num_links)
+                fn = buf;
             }
 
-          /* Always store the new path in buf1.  */
-          if (buf != buf1)
-            memcpy (buf1, buf, len);
-
-          /* Tack the relative symlink at the end of buf1.  */
-          memcpy (buf1 + len, buf2, rc + 1);
-          buf = buf1;
+          /* Store the new file name in BUF.  Beware overlap.  */
+          memmove (buf + dirlen, buf + buf_used, linklen);
+          if (fn != buf)
+            memcpy (buf, fn, dirlen);
         }
       else
         {
-          /* Use buf2 as the buffer, it saves a strcpy if it is not pointing to
-             another link.  It works for absolute symlinks, and as long as
-             symlinks do not leave the current directory.  */
-           buf = buf2;
+          /* A symlink to an absolute file name, or a relative symlink
+             from the working directory.  The new file name is simply
+             the symlink contents.  */
+          memmove (buf, buf + buf_used, linklen);
+          newlen = linklen;
         }
+
+      buf[newlen] = '\0';
+      buf_used = newlen + 1;
+      fn = buf;
     }
+#endif
 
-  if (rc < 0)
-    panic (_("cannot stat %s: %s"), buf, strerror (errno));
-
-  return buf;
-#else
-  return fname;
-#endif /* ENABLE_FOLLOW_SYMLINKS */
+  return fn;
 }
 
 /* Panic on failing rename */
 void
-ck_rename (const char *from, const char *to, const char *unlink_if_fail)
+ck_rename (const char *from, const char *to)
 {
   int rd = rename (from, to);
   if (rd != -1)
     return;
-
-  if (unlink_if_fail)
-    {
-      int save_errno = errno;
-      errno = 0;
-      unlink (unlink_if_fail);
-
-      /* Failure to remove the temporary file is more severe,
-         so trigger it first.  */
-      if (errno != 0)
-        panic (_("cannot remove %s: %s"), unlink_if_fail, strerror (errno));
-
-      errno = save_errno;
-    }
 
   panic (_("cannot rename %s: %s"), from, strerror (errno));
 }

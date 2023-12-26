@@ -1,11 +1,11 @@
 #!/bin/sh
 # Unit tests for vc-list-files
-# Copyright (C) 2008-2018 Free Software Foundation, Inc.
+# Copyright (C) 2008-2022 Free Software Foundation, Inc.
 # This file is part of the GNUlib Library.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
+# the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-: ${srcdir=.}
-. "$srcdir/init.sh"; path_prepend_ "$abs_aux_dir" .
+: "${srcdir=.}"
+. "$srcdir/init.sh"; path_prepend_ .
 
 tmpdir=vc-cvs
 repo=`pwd`/$tmpdir/repo
@@ -44,7 +44,7 @@ for i in with-cvsu without; do
     cvs -Q -d "$repo" import -m imp m M M0 &&
     cvs -Q -d "$repo" co m && cd m &&
     printf '%s\n' b c d/a > expected &&
-    vc-list-files | sort > actual &&
+    $BOURNE_SHELL "$abs_aux_dir/vc-list-files" | sort > actual &&
     compare expected actual &&
     ok=1
   test $ok = 0 && fail=1
